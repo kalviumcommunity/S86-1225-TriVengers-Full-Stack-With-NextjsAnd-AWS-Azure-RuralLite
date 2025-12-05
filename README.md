@@ -1,32 +1,32 @@
-# 📘 _RuralLite Learning Platform_
+# 📘 RuralLite Learning Platform
 
 ### Offline-First Educational Web App for Low-Bandwidth Rural Schools
 
-Built with _Next.js, **AWS/Azure Cloud Services, and **Progressive Web App (PWA)_ technologies.
+Built with Next.js, **AWS/Azure Cloud Services, and **Progressive Web App (PWA)_ technologies.
 
 ---
 
-## 📌 _Overview_
+## 📌 Overview
 
-RuralLite is a _lightweight, offline-first learning platform_ designed for rural or low-connectivity schools.
+RuralLite is a lightweight, offline-first learning platform designed for rural or low-connectivity schools.
 
-The application allows students to _access lessons, quizzes, and multimedia resources fully offline_, using a PWA architecture with smart caching, local storage, and background synchronization. Cloud services (AWS or Azure) are used only for authentication, content publishing, and occasional data sync.
-
----
-
-## 🎯 _Key Features_
-
-- _Offline-first PWA_ (works without internet)
-- _Local caching of lessons, quizzes, notes, and media_
-- _Lightweight content bundles_ optimized for weak networks
-- _Background sync_ for student progress & new content
-- _Teacher-friendly CMS_ (cloud-hosted)
-- _Low-end device compatible_
-- _Secure user authentication_ (Cognito / Azure AD B2C)
+The application allows students to access lessons, quizzes, and multimedia resources fully offline, using a PWA architecture with smart caching, local storage, and background synchronization. Cloud services (AWS or Azure) are used only for authentication, content publishing, and occasional data sync.
 
 ---
 
-## 🏗 _System Architecture_
+## 🎯 Key Features
+
+- Offline-first PWA (works without internet)
+- Local caching of lessons, quizzes, notes, and media
+- Lightweight content bundles optimized for weak networks
+- Background sync for student progress & new content
+- Teacher-friendly CMS (cloud-hosted)
+- Low-end device compatible
+- Secure user authentication (Cognito / Azure AD B2C)
+
+---
+
+## 🏗 System Architecture
 
 ┌──────────────────────────┐
 │ Next.js PWA Frontend │
@@ -56,7 +56,7 @@ The application allows students to _access lessons, quizzes, and multimedia reso
 
 ---
 
-## 🧰 _Tech Stack_
+## 🧰 Tech Stack
 
 Frontend :NextJS
 Backend: NextJS
@@ -65,15 +65,15 @@ Deployement: AWS
 
 ---
 
-## 🔄 _Offline Sync Logic_
+## 🔄 Offline Sync Logic
 
-### _When offline:_
+### When offline:
 
-- Lessons load from _indexedDB_
+- Lessons load from indexedDB
 - Quiz results stored locally
 - Notes saved to local database
 
-### _When reconnected:_
+### When reconnected:
 
 - Syncs quiz results → cloud
 - Downloads new lessons → cache
