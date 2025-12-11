@@ -5,7 +5,6 @@
 Built with Next.js, **AWS/Azure Cloud Services**, and **Progressive Web App (PWA)** technologies.
 
 ---
-
 ## 📌 Problem Statement
 
 Rural and low-connectivity schools struggle to access quality educational resources due to poor internet infrastructure. Students often miss out on digital learning opportunities, multimedia content, and interactive assessments that urban schools enjoy. RuralLite addresses this gap by providing an offline-first learning platform that works seamlessly without internet, while syncing progress when connectivity is available.
@@ -264,3 +263,11 @@ Built with ❤️ for improving rural education accessibility
 - [x] Add setup instructions and naming conventions
 - [x] Run app locally and capture screenshot
 - [x] Write reflection on structure and scalability
+
+# 📝 Day 2 – TypeScript & Linting Setup
+
+- Enabled **Strict TypeScript Mode** in `tsconfig.json`
+- Configured **ESLint + Prettier** for consistent formatting
+- Added **Husky pre-commit hook** with `lint-staged` to auto-fix code
+- Updated `package.json` with linting scripts and tool configurations
+- Added brief documentation explaining the setup and its benefits
