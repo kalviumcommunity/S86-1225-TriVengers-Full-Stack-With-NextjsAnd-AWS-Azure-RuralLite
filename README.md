@@ -218,7 +218,63 @@ npm start
 
 ---
 
-## 🔄 Offline Sync Logic
+## � Git Workflow & Collaboration
+
+### Branch Naming Conventions
+
+Our team follows a consistent branching strategy for clarity and traceability:
+
+| Branch Type | Pattern | Example |
+|------------|---------|---------|
+| **Feature** | `feature/<feature-name>` | `feature/login-auth` |
+| **Bug Fix** | `fix/<bug-name>` | `fix/navbar-alignment` |
+| **Chore** | `chore/<task-name>` | `chore/update-dependencies` |
+| **Documentation** | `docs/<update-name>` | `docs/update-readme` |
+
+### Pull Request Template
+
+We use a standardized PR template located at `.github/pull_request_template.md` that includes:
+- Summary of changes
+- List of key updates
+- Screenshots/evidence
+- Type of change (feature/fix/chore/docs)
+- Comprehensive checklist
+- Related issue links
+
+### Code Review Checklist
+
+Every PR must pass this checklist before merging:
+
+- [ ] **Code Quality**: Follows naming conventions and project structure
+- [ ] **Functionality**: Verified locally and tested
+- [ ] **Build Status**: Code builds successfully without errors
+- [ ] **Linting**: ESLint + Prettier checks pass
+- [ ] **Console**: No console errors or warnings
+- [ ] **Documentation**: Comments and docs are meaningful
+- [ ] **Security**: No sensitive data exposed (.env files excluded)
+- [ ] **Tests**: All tests pass (when applicable)
+- [ ] **Review**: Reviewed by at least one teammate
+- [ ] **Issue Link**: Linked to corresponding issue
+
+### Branch Protection Rules
+
+Our `main` branch is protected with:
+- ✅ Require pull request reviews before merging
+- ✅ Require status checks to pass (lint/test workflows)
+- ✅ Disallow direct pushes to main
+- ✅ Require branches to be up to date before merging
+
+### Why This Workflow?
+
+**Code Quality**: Automated checks catch issues before they reach production  
+**Collaboration**: Clear templates and checklists improve communication  
+**Velocity**: Parallel development without merge conflicts  
+**Trust**: Every change is reviewed, tested, and documented  
+**Traceability**: Branch naming and PR links create clear history
+
+---
+
+## �🔄 Offline Sync Logic
 
 ### When offline:
 
@@ -264,16 +320,19 @@ Built with ❤️ for improving rural education accessibility
 - [x] Run app locally and capture screenshot
 - [x] Write reflection on structure and scalability
 
-# 📝 Day 2 – TypeScript & Linting Setup
+---
 
-- Enabled **Strict TypeScript Mode** in `tsconfig.json`
-- Configured **ESLint + Prettier** for consistent formatting
-- Added **Husky pre-commit hook** with `lint-staged` to auto-fix code
-- Updated `package.json` with linting scripts and tool configurations
-- Added brief documentation explaining the setup and its benefits
+## 📝 Day 2 - Team Workflow & Git Setup
 
-# Environment Variable Management
+- [x] Defined branch naming conventions (feature/fix/chore/docs)
+- [x] Created PR template in `.github/pull_request_template.md`
+- [x] Documented code review checklist
+- [x] Configured branch protection rules on main
+- [x] Added Git workflow section to README
+- [x] Enabled TypeScript strict mode in `tsconfig.json`
+- [x] Configured ESLint + Prettier for consistent formatting
+- [x] Set up Husky pre-commit hook with `lint-staged`
+- [x] Created `.env.example` for environment variable management
+- [x] Updated `.gitignore` to exclude sensitive `.env` files
 
-- Set up .env.local for real secrets and .env.example for placeholders to support team setup.
-- Updated .gitignore to ensure environment secrets are never committed.
-- Documented server-only vs client-exposed variables and demonstrated safe process.env usage in code.
+---
