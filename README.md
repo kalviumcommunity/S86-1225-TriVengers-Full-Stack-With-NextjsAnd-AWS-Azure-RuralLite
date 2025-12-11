@@ -271,3 +271,9 @@ Built with ❤️ for improving rural education accessibility
 - Added **Husky pre-commit hook** with `lint-staged` to auto-fix code
 - Updated `package.json` with linting scripts and tool configurations
 - Added brief documentation explaining the setup and its benefits
+
+# Environment Variable Management
+
+- Set up .env.local for real secrets and .env.example for placeholders to support team setup.
+- Updated .gitignore to ensure environment secrets are never committed.
+- Documented server-only vs client-exposed variables and demonstrated safe process.env usage in code.
