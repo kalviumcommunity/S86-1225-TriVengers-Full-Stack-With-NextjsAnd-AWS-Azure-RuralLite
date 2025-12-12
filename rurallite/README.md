@@ -20,6 +20,19 @@ You can start editing the page by modifying `app/page.js`. The page auto-updates
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
+### Prisma & PostgreSQL (local development)
+
+The repository includes a `docker-compose.yml` that spins up a `db` (Postgres) and `redis` service. Use the Prisma schema in `prisma/schema.prisma` to manage migrations and the Prisma Client.
+
+1. Start Postgres: `docker-compose up -d db`
+2. In the `rurallite` folder install dependencies: `npm install`
+3. Generate Prisma client: `npm run prisma:generate`
+4. Apply migrations: `npm run prisma:migrate`
+5. Seed database: `npm run prisma:seed`
+6. Visit Prisma Studio: `npm run prisma:studio`
+
+If you don't use Docker, set `DATABASE_URL` in `rurallite/.env.local` to point at your Postgres instance.
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:

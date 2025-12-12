@@ -6,11 +6,17 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev --name init_schema",
+    "prisma:studio": "prisma studio",
+    "prisma:seed": "node prisma/seed.js",
+    "db:reset": "docker-compose down -v && docker-compose up -d db && npx prisma migrate reset --force"
   },
   "dependencies": {
     "react": "19.2.1",
-    "react-dom": "19.2.1"
+    "react-dom": "19.2.1",
+    "@prisma/client": "^5.10.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
@@ -22,6 +28,7 @@
     "eslint-plugin-react": "^7.37.5",
     "globals": "^16.5.0",
     "next": "^16.0.8",
-    "tailwindcss": "^4"
+    "tailwindcss": "^4",
+    "prisma": "^5.10.0"
   }
 }

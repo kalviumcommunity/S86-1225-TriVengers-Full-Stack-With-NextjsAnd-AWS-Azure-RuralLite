@@ -1,0 +1,147 @@
+// Prisma schema for RuralLite / TriVengers project
+// Datasource: PostgreSQL (configured via DATABASE_URL)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Normalized models: User, Team, Project, Task, Comment, Tag, TaskTag, ProjectMember
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum ProjectRole {
+  OWNER
+  MANAGER
+  CONTRIBUTOR
+  VIEWER
+}
+
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  REVIEW
+  DONE
+  ARCHIVED
+}
+
+model User {
+  id         Int       @id @default(autoincrement())
+  name       String
+  email      String    @unique
+  role       Role      @default(USER)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  projects   Project[] @relation("ProjectOwner")
+  tasks      Task[]    @relation("TaskAssignee")
+  comments   Comment[]
+  memberships ProjectMember[]
+  teams      TeamMember[]
+}
+
+model Team {
+  id         Int       @id @default(autoincrement())
+  name       String    @unique
+  description String?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  members    TeamMember[]
+  projects   Project[]
+}
+
+model TeamMember {
+  id       Int    @id @default(autoincrement())
+  user     User   @relation(fields: [userId], references: [id])
+  userId   Int
+  team     Team   @relation(fields: [teamId], references: [id])
+  teamId   Int
+  role     Role   @default(USER)
+
+  @@unique([userId, teamId])
+}
+
+model Project {
+  id         Int       @id @default(autoincrement())
+  name       String
+  slug       String    @unique
+  description String?
+  status     String    @default("active")
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  owner      User      @relation("ProjectOwner", fields: [ownerId], references: [id])
+  ownerId    Int
+  team       Team?     @relation(fields: [teamId], references: [id])
+  teamId     Int?
+  tasks      Task[]
+  members    ProjectMember[]
+}
+
+model ProjectMember {
+  id        Int        @id @default(autoincrement())
+  user      User       @relation(fields: [userId], references: [id])
+  userId    Int
+  project   Project    @relation(fields: [projectId], references: [id])
+  projectId Int
+  role      ProjectRole @default(CONTRIBUTOR)
+  createdAt DateTime   @default(now())
+
+  @@unique([userId, projectId])
+}
+
+model Task {
+  id          Int       @id @default(autoincrement())
+  title       String
+  description String?
+  status      TaskStatus @default(TODO)
+  priority    Int       @default(3)
+  dueDate     DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  project     Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId   Int
+  assignee    User?     @relation("TaskAssignee", fields: [assigneeId], references: [id])
+  assigneeId  Int?
+  comments    Comment[]
+  tags        TaskTag[]
+
+  @@index([projectId])
+  @@index([assigneeId])
+}
+
+model Comment {
+  id         Int      @id @default(autoincrement())
+  content    String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  author     User     @relation(fields: [authorId], references: [id])
+  authorId   Int
+  task       Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  taskId     Int
+}
+
+model Tag {
+  id    Int    @id @default(autoincrement())
+  name  String @unique
+  tasks TaskTag[]
+}
+
+model TaskTag {
+  id     Int  @id @default(autoincrement())
+  task   Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  taskId Int
+  tag    Tag  @relation(fields: [tagId], references: [id])
+  tagId  Int
+
+  @@unique([taskId, tagId])
+  @@index([tagId])
+}

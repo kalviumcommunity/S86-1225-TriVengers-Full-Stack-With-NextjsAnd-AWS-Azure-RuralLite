@@ -64,6 +64,10 @@ The application allows students to access lessons, quizzes, and multimedia resou
 
 ## 🧰 Tech Stack
 
+> NOTE: A Prisma + PostgreSQL schema is included in `prisma/` for normalized relational data modelling (User/Team/Project/Task). See `prisma/README.md` for migration and seed steps.
+
+## 🧰 Tech Stack
+
 - **Frontend**: Next.js (React Framework)
 - **Backend**: Next.js API Routes
 - **Database**: MongoDB
@@ -349,6 +353,14 @@ Built with ❤️ for improving rural education accessibility
 - [x] Updated `.gitignore` to exclude sensitive `.env` files
 
 ---
+
+## 📝 Day 3 - Prisma & PostgreSQL
+
+- Added a normalized Prisma schema (`prisma/schema.prisma`) with models: User, Team, Project, Task, Comment, Tag, and related join tables.
+- Created migration files and an initial SQL migration, and added a seed script (`prisma/seed.js`) that inserts example users, teams, projects, tasks, tags, and comments.
+- Implemented a Prisma client helper (`rurallite/prismaClient.js`) and a simple API route (`/api/testdb`) to verify DB connectivity and seeded counts.
+- Updated `rurallite/package.json` with Prisma scripts (`prisma:generate`, `prisma:migrate`, `prisma:studio`, `prisma:seed`) and added `.env` examples for local development.
+
 
 ## 🐳 Docker & Docker Compose Setup
 
