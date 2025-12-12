@@ -5,6 +5,7 @@
 Built with Next.js, **AWS/Azure Cloud Services**, and **Progressive Web App (PWA)** technologies.
 
 ---
+
 ## 📌 Problem Statement
 
 Rural and low-connectivity schools struggle to access quality educational resources due to poor internet infrastructure. Students often miss out on digital learning opportunities, multimedia content, and interactive assessments that urban schools enjoy. RuralLite addresses this gap by providing an offline-first learning platform that works seamlessly without internet, while syncing progress when connectivity is available.
@@ -118,17 +119,17 @@ S86-1225-TriVengers-Full-Stack-With-NextjsAnd-AWS-Azure-RuralLite/
 
 ### 📂 Folder Purpose Explanation
 
-| Folder/File | Purpose |
-|------------|---------|
-| **app/** | Contains all pages and routing logic using Next.js App Router |
-| **app/(auth)/** | Groups authentication-related pages (login, register) |
-| **app/api/** | Backend API endpoints for authentication, lessons, quizzes, and sync |
-| **components/** | Reusable UI components to maintain DRY principle |
-| **lib/** | Business logic, database operations, PWA utilities |
-| **lib/db/** | IndexedDB wrapper for offline data storage |
-| **lib/pwa/** | Service Worker registration and background sync logic |
-| **public/** | Static assets served directly (icons, manifest, service worker) |
-| **config/** | Application configuration files (API keys, constants) |
+| Folder/File     | Purpose                                                              |
+| --------------- | -------------------------------------------------------------------- |
+| **app/**        | Contains all pages and routing logic using Next.js App Router        |
+| **app/(auth)/** | Groups authentication-related pages (login, register)                |
+| **app/api/**    | Backend API endpoints for authentication, lessons, quizzes, and sync |
+| **components/** | Reusable UI components to maintain DRY principle                     |
+| **lib/**        | Business logic, database operations, PWA utilities                   |
+| **lib/db/**     | IndexedDB wrapper for offline data storage                           |
+| **lib/pwa/**    | Service Worker registration and background sync logic                |
+| **public/**     | Static assets served directly (icons, manifest, service worker)      |
+| **config/**     | Application configuration files (API keys, constants)                |
 
 ### 🏗️ Naming Conventions
 
@@ -142,6 +143,7 @@ S86-1225-TriVengers-Full-Stack-With-NextjsAnd-AWS-Azure-RuralLite/
 ## 🚀 Setup Instructions
 
 ### Prerequisites
+
 - Node.js (v18 or higher)
 - npm or yarn
 - MongoDB (local or cloud instance)
@@ -149,18 +151,21 @@ S86-1225-TriVengers-Full-Stack-With-NextjsAnd-AWS-Azure-RuralLite/
 ### Installation
 
 1. **Clone the repository**
+
    ```bash
    git clone https://github.com/kalviumcommunity/S86-1225-TriVengers-Full-Stack-With-NextjsAnd-AWS-Azure-RuralLite.git
    cd S86-1225-TriVengers-Full-Stack-With-NextjsAnd-AWS-Azure-RuralLite/rurallite
    ```
 
 2. **Install dependencies**
+
    ```bash
    npm install
    ```
 
 3. **Set up environment variables**
    Create a `.env.local` file in the `rurallite/` directory:
+
    ```env
    MONGODB_URI=your_mongodb_connection_string
    NEXT_PUBLIC_API_URL=http://localhost:3000
@@ -169,6 +174,7 @@ S86-1225-TriVengers-Full-Stack-With-NextjsAnd-AWS-Azure-RuralLite/
    ```
 
 4. **Run the development server**
+
    ```bash
    npm run dev
    ```
@@ -177,6 +183,7 @@ S86-1225-TriVengers-Full-Stack-With-NextjsAnd-AWS-Azure-RuralLite/
    Navigate to [http://localhost:3000](http://localhost:3000)
 
 ### Build for Production
+
 ```bash
 npm run build
 npm start
@@ -188,29 +195,33 @@ npm start
 
 ![RuralLite Homepage Running Locally](./screenshots/local-dev-screenshot.png)
 
-*Screenshot showing the RuralLite homepage running on localhost:3000*
+_Screenshot showing the RuralLite homepage running on localhost:3000_
 
 ---
 
 ## 💡 Why This Structure?
 
 ### Scalability
+
 - **Modular Design**: Components, API routes, and utilities are separated for easy maintenance
 - **Feature-Based Organization**: Related features (lessons, quizzes) are grouped together
 - **Reusable Components**: UI components can be shared across different pages
 - **API Separation**: Backend logic is isolated in `app/api/` for easy testing and scaling
 
 ### Clarity
+
 - **Clear Separation of Concerns**: Frontend (components), Backend (API), and utilities (lib) are distinct
 - **Intuitive Navigation**: Folder names clearly indicate their purpose
 - **Grouped Routes**: Using `(auth)` groups keeps authentication logic together without affecting URLs
 
 ### Team Collaboration
+
 - **Easy Onboarding**: New team members can quickly understand the project structure
 - **Parallel Development**: Multiple developers can work on different features without conflicts
 - **Consistent Patterns**: Naming conventions ensure uniformity across the codebase
 
 ### Future Sprints
+
 - **PWA Support**: `lib/pwa/` folder is ready for service worker and offline capabilities
 - **Database Flexibility**: `lib/db/` can be extended for different database solutions
 - **Component Library**: `components/ui/` can evolve into a full design system
@@ -224,16 +235,17 @@ npm start
 
 Our team follows a consistent branching strategy for clarity and traceability:
 
-| Branch Type | Pattern | Example |
-|------------|---------|---------|
-| **Feature** | `feature/<feature-name>` | `feature/login-auth` |
-| **Bug Fix** | `fix/<bug-name>` | `fix/navbar-alignment` |
-| **Chore** | `chore/<task-name>` | `chore/update-dependencies` |
-| **Documentation** | `docs/<update-name>` | `docs/update-readme` |
+| Branch Type       | Pattern                  | Example                     |
+| ----------------- | ------------------------ | --------------------------- |
+| **Feature**       | `feature/<feature-name>` | `feature/login-auth`        |
+| **Bug Fix**       | `fix/<bug-name>`         | `fix/navbar-alignment`      |
+| **Chore**         | `chore/<task-name>`      | `chore/update-dependencies` |
+| **Documentation** | `docs/<update-name>`     | `docs/update-readme`        |
 
 ### Pull Request Template
 
 We use a standardized PR template located at `.github/pull_request_template.md` that includes:
+
 - Summary of changes
 - List of key updates
 - Screenshots/evidence
@@ -259,6 +271,7 @@ Every PR must pass this checklist before merging:
 ### Branch Protection Rules
 
 Our `main` branch is protected with:
+
 - ✅ Require pull request reviews before merging
 - ✅ Require status checks to pass (lint/test workflows)
 - ✅ Disallow direct pushes to main
@@ -334,5 +347,333 @@ Built with ❤️ for improving rural education accessibility
 - [x] Set up Husky pre-commit hook with `lint-staged`
 - [x] Created `.env.example` for environment variable management
 - [x] Updated `.gitignore` to exclude sensitive `.env` files
+
+---
+
+## 🐳 Docker & Docker Compose Setup
+
+### Overview
+
+This section covers containerizing the RuralLite application stack for consistent local development and deployment. The Docker setup includes:
+
+- **Next.js Application** (Node.js 20-Alpine)
+- **PostgreSQL Database** (v15-Alpine) for data persistence
+- **Redis Cache** (v7-Alpine) for session management and caching
+
+Using Docker and Docker Compose ensures that every team member runs the exact same environment, eliminating the classic "it works on my machine" problem.
+
+### Project Files
+
+#### 1. **Dockerfile** (Next.js Application)
+
+```dockerfile
+# Use official Node.js image
+FROM node:20-alpine
+
+# Set working directory
+WORKDIR /app
+
+# Copy package files and install dependencies
+COPY package*.json ./
+RUN npm install
+
+# Copy rurallite subdirectory contents
+COPY rurallite ./rurallite
+
+# Set working directory to rurallite app
+WORKDIR /app/rurallite
+
+# Install app dependencies
+RUN npm install
+
+# Build the Next.js app
+RUN npm run build
+
+# Expose the app port
+EXPOSE 3000
+
+# Start the app
+CMD ["npm", "run", "start"]
+```
+
+**Why Alpine?** Alpine Linux is lightweight (~5MB) compared to standard Node images, resulting in faster builds and smaller image sizes.
+
+#### 2. **docker-compose.yml** (Service Orchestration)
+
+The `docker-compose.yml` file orchestrates three services:
+
+**App Service (Next.js)**
+
+- Builds from the Dockerfile
+- Exposes port 3000
+- Environment variables for database and Redis connections
+- Depends on PostgreSQL and Redis with health checks
+- Auto-restart policy for reliability
+
+**Database Service (PostgreSQL)**
+
+- Uses Alpine image for efficiency
+- Persistent storage with named volume `db_data`
+- Exposed on port 5432
+- Health check to ensure readiness before app starts
+- Credentials: `postgres` / `password` (change in production!)
+
+**Redis Service (Redis)**
+
+- Cache layer for sessions and temporary data
+- Exposed on port 6379
+- Health check via `redis-cli ping`
+- Auto-restart enabled
+
+**Network & Volumes**
+
+- **localnet**: Custom bridge network for inter-service communication
+- **db_data**: Named volume for PostgreSQL data persistence
+
+### Quick Start
+
+#### Prerequisites
+
+- **Docker**: [Download & Install](https://www.docker.com/products/docker-desktop)
+- **Docker Compose**: Included with Docker Desktop
+
+#### Starting the Stack
+
+```bash
+# From the project root directory
+docker-compose up --build
+```
+
+This command:
+
+1. Builds the Next.js app image
+2. Pulls PostgreSQL and Redis images
+3. Creates the network and volumes
+4. Starts all three services
+
+**Expected Output:**
+
+```
+Creating network "localnet" with driver "bridge"
+Creating volume "db_data" with default driver
+Building app
+[...]
+trivengers_nextjs_app is running on port 3000
+trivengers_postgres_db is running on port 5432
+trivengers_redis_cache is running on port 6379
+```
+
+#### Verifying All Services
+
+```bash
+# Check running containers
+docker ps
+
+# Expected output:
+# CONTAINER ID   IMAGE        PORTS                    NAMES
+# abc123...      node:20...   0.0.0.0:3000->3000/tcp   trivengers_nextjs_app
+# def456...      postgres:15  0.0.0.0:5432->5432/tcp   trivengers_postgres_db
+# ghi789...      redis:7      0.0.0.0:6379->6379/tcp   trivengers_redis_cache
+```
+
+#### Access Services
+
+- **Next.js App**: http://localhost:3000
+- **PostgreSQL**: `localhost:5432` (use connection string in app)
+- **Redis**: `localhost:6379` (use connection string in app)
+
+### Environment Variables
+
+The `docker-compose.yml` sets the following environment variables in the Next.js container:
+
+```yaml
+DATABASE_URL=postgresql://postgres:password@db:5432/trivengers_db
+REDIS_URL=redis://redis:6379
+NODE_ENV=production
+```
+
+**Important:** Change the default PostgreSQL password in production. Update both `docker-compose.yml` and your `.env.local` file.
+
+### Common Commands
+
+#### View Container Logs
+
+```bash
+# All services
+docker-compose logs -f
+
+# Specific service
+docker-compose logs -f app
+docker-compose logs -f db
+docker-compose logs -f redis
+```
+
+#### Stop All Services
+
+```bash
+docker-compose down
+```
+
+#### Stop and Remove Data
+
+```bash
+# Warning: This deletes the database!
+docker-compose down -v
+```
+
+#### Restart Services
+
+```bash
+docker-compose restart
+```
+
+#### Execute Commands in Container
+
+```bash
+# Access Next.js app container
+docker-compose exec app sh
+
+# Access PostgreSQL container
+docker-compose exec db psql -U postgres -d trivengers_db
+
+# Access Redis container
+docker-compose exec redis redis-cli
+```
+
+### Troubleshooting
+
+#### Issue: Port Already in Use
+
+**Problem**: "Port 3000 is already allocated"
+
+**Solution**: Change ports in `docker-compose.yml`:
+
+```yaml
+app:
+  ports:
+    - "3001:3000" # Use 3001 instead
+```
+
+#### Issue: Database Connection Error
+
+**Problem**: "Cannot connect to postgres database"
+
+**Solution**:
+
+1. Ensure `db` service is running: `docker ps`
+2. Check database logs: `docker-compose logs db`
+3. Wait for health check to pass (takes ~10 seconds)
+
+#### Issue: Slow Docker Builds
+
+**Problem**: First build takes several minutes
+
+**Solutions**:
+
+- Ensure stable internet (downloading images)
+- Use `.dockerignore` to exclude unnecessary files
+- Add build cache: `docker builder prune --all`
+
+#### Issue: Permission Errors
+
+**Problem**: "Permission denied" on Windows with WSL2
+
+**Solution**:
+
+```bash
+# Run Docker Desktop with WSL2 backend
+# Settings > Resources > WSL integration
+```
+
+#### Issue: Redis Connection Failed
+
+**Problem**: "Cannot connect to redis://redis:6379"
+
+**Solution**:
+
+1. Check Redis health: `docker-compose logs redis`
+2. Verify network: `docker network inspect localnet`
+3. Restart Redis: `docker-compose restart redis`
+
+### Production Considerations
+
+#### Security
+
+- **Change Credentials**: Don't use `password` in production
+- **Use Secrets**: Store sensitive values in `.env` files (never committed)
+- **Network Policies**: Restrict service access with firewall rules
+- **SSL/TLS**: Enable encrypted connections to PostgreSQL
+
+#### Performance
+
+- **Multi-stage Builds**: Reduce image size with multi-stage Dockerfile
+- **Resource Limits**: Set memory and CPU limits for containers
+- **Caching Strategy**: Implement layer caching for faster builds
+
+#### Example Production Compose (Snippet)
+
+```yaml
+db:
+  image: postgres:15-alpine
+  restart: always
+  environment:
+    POSTGRES_USER: ${DB_USER}
+    POSTGRES_PASSWORD: ${DB_PASSWORD} # From .env, never hardcoded
+  volumes:
+    - db_data:/var/lib/postgresql/data
+  networks:
+    - localnet
+  healthcheck:
+    test: ["CMD-SHELL", "pg_isready -U ${DB_USER}"]
+```
+
+### Health Checks
+
+All services include health checks that automatically restart failed containers:
+
+- **App**: HTTP GET to `localhost:3000` every 30 seconds
+- **Database**: PostgreSQL ready check every 10 seconds
+- **Redis**: `redis-cli ping` every 10 seconds
+
+This ensures high availability during local development.
+
+### Reflection & Lessons Learned
+
+#### Challenges Faced
+
+1. **Image Size Optimization**
+   - Initially used `node:20` (900MB+), switched to `node:20-alpine` (150MB)
+   - Result: 6x smaller images and faster downloads
+
+2. **Service Dependencies**
+   - Race condition where app started before PostgreSQL was ready
+   - **Solution**: Added `healthcheck` to ensure database is ready before app connects
+
+3. **Network Configuration**
+   - Container-to-container communication requires proper networking
+   - Used custom bridge network (`localnet`) for service discovery
+
+4. **Volume Management**
+   - Data was lost when containers were removed
+   - **Solution**: Named volume `db_data` persists PostgreSQL data across restarts
+
+5. **Environment Variables**
+   - Hardcoded credentials posed security risks
+   - Implemented environment-based configuration for flexibility
+
+#### Key Takeaways
+
+✅ **Docker ensures consistency** across development, testing, and production environments  
+✅ **Docker Compose simplifies** multi-service orchestration and team collaboration  
+✅ **Health checks prevent** service dependency issues and race conditions  
+✅ **Volumes enable** data persistence between container restarts  
+✅ **Named containers** make logs and debugging easier to track
+
+#### Next Steps
+
+- Implement CI/CD pipeline (GitHub Actions) to build and push images
+- Add database migration scripts to initialize schema
+- Configure environment-specific compose files (`docker-compose.dev.yml`, `docker-compose.prod.yml`)
+- Document deployment to cloud services (AWS ECS, Azure Container Instances)
 
 ---
