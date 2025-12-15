@@ -232,7 +232,155 @@ _Screenshot showing the RuralLite homepage running on localhost:3000_
 - **API Versioning**: API routes can be versioned (`api/v1/`, `api/v2/`) as needed
 
 ---
+## 🗄️ Prisma ORM Setup
 
+### Why Prisma?
+
+Prisma is our chosen ORM for RuralLite because it provides:
+- **Type Safety**: Auto-generated TypeScript types prevent runtime errors
+- **PostgreSQL Support**: Robust relational database for complex queries and data integrity
+- **Developer Experience**: Intuitive API and excellent tooling
+- **Query Optimization**: Efficient queries crucial for low-bandwidth environments
+- **Migration Management**: Version control for database schema changes
+
+### Database Models
+
+Our schema is designed specifically for offline-first rural education:
+
+#### Core Models:
+- **User**: Students, Teachers, and Admins with role-based access
+- **Lesson**: Educational content with offline caching metadata (download size, media URLs)
+- **Quiz**: Assessments with time limits and configurable passing scores
+- **Question**: Individual quiz questions with multiple choice options
+- **QuizResult**: Student attempts with sync tracking for offline-to-online transition
+- **Answer**: Individual answer records linked to quiz results
+- **Progress**: Lesson completion tracking with percentage and sync status
+- **Note**: Student notes with tag support and offline sync capability
+
+#### Key Design Decisions:
+- **PostgreSQL**: Relational integrity, ACID compliance, and powerful querying
+- **Separate Tables**: Question and Answer are separate tables (not embedded) for flexibility
+- **Sync Tracking**: `syncedAt` fields track offline-to-cloud synchronization
+- **Cascade Deletes**: Maintains data integrity when users/lessons are removed
+- **Indexes**: Optimized queries on foreign keys and frequently searched fields
+- **Unique Constraints**: Prevents duplicate progress entries per user-lesson
+
+### Schema Snippet
+
+```prisma
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Lesson {
+  id          Int       @id @default(autoincrement())
+  title       String
+  subject     String
+  grade       Int
+  difficulty  Difficulty @default(BEGINNER)
+  isOffline   Boolean   @default(true)
+  downloadSize Int?     // KB for offline planning
+  
+  quizzes     Quiz[]
+  progress    Progress[]
+}
+
+model Progress {
+  id          Int       @id @default(autoincrement())
+  userId      Int
+  lessonId    Int
+  completed   Boolean   @default(false)
+  progress    Int       @default(0)
+  syncedAt    DateTime? // Tracks cloud sync
+  
+  user        User      @relation(fields: [userId], references: [id])
+  lesson      Lesson    @relation(fields: [lessonId], references: [id])
+  
+  @@unique([userId, lessonId])
+  @@index([userId])
+}
+```
+
+### Setup Steps
+
+1. **Install Prisma**
+   ```bash
+   cd rurallite
+   npm install prisma @prisma/client --save-dev
+   npx prisma init
+   ```
+
+2. **Configure Database**
+   - Update `DATABASE_URL` in `.env.local` with MongoDB connection string
+   - Use `.env.example` as reference
+
+3. **Generate Prisma Client**
+   ```bash
+   npx prisma generate
+   ```
+
+4. **Push Schema to Database**
+   ```bash
+   npx prisma db push
+   ```
+
+5. **Test Connection**
+   ```typescript
+   import { prisma } from '@/lib/prisma';
+   const users = await prisma.user.findMany();
+   ```
+
+### Client Initialization
+
+Created singleton Prisma client at `lib/prisma.ts`:
+
+```typescript
+import { PrismaClient } from '@prisma/client';
+
+const globalForPrisma = global as unknown as { prisma: PrismaClient };
+
+export const prisma =
+  globalForPrisma.prisma ||
+  new PrismaClient({
+    log: ['query', 'info', 'warn', 'error'],
+  });
+
+if (process.env.NODE_ENV !== 'production') 
+  globalForPrisma.prisma = prisma;
+```
+
+**Why Singleton?** Prevents multiple Prisma instances during development hot-reloading, avoiding database connection exhaustion.
+
+### Testing & Verification
+
+Test queries available in `lib/db/test-connection.ts`:
+- Connection verification
+- Sample lesson creation
+- Query examples for all models
+
+### How Prisma Improves Our Project
+
+**Type Safety**: Auto-completion for all database queries eliminates typos and wrong field names
+**Productivity**: No manual SQL writing—focus on features, not queries  
+**Data Integrity**: PostgreSQL's relational constraints ensure consistent data relationships  
+**Team Collaboration**: Shared schema file ensures everyone uses same data structure  
+**Reliability**: Built-in connection pooling and query optimization crucial for low-resource environments
+**Migrations**: Version-controlled database changes make team collaboration seamless
+
+### Environment Variables
+
+```env
+# PostgreSQL Connection (Local)
+DATABASE_URL="postgresql://postgres:password@localhost:5432/rurallite"
+
+# PostgreSQL Connection (Production - example)
+DATABASE_URL="postgresql://user:password@host.com:5432/rurallite?schema=public"
+```
+
+See `.env.example` for complete configuration.
+
+---
 ## � Git Workflow & Collaboration
 
 ### Branch Naming Conventions
@@ -351,6 +499,19 @@ Built with ❤️ for improving rural education accessibility
 - [x] Set up Husky pre-commit hook with `lint-staged`
 - [x] Created `.env.example` for environment variable management
 - [x] Updated `.gitignore` to exclude sensitive `.env` files
+
+---
+
+## 📝 Day 3 - Prisma ORM & Database Setup
+
+- [x] Installed Prisma and initialized project
+- [x] Designed MongoDB schema for RuralLite (User, Lesson, Quiz, Progress, Note models)
+- [x] Added offline-first features (syncedAt, downloadSize, isOffline fields)
+- [x] Generated Prisma Client with TypeScript types
+- [x] Created singleton Prisma client in `lib/prisma.ts`
+- [x] Added test connection file with sample queries
+- [x] Updated `.env.example` with DATABASE_URL
+- [x] Documented Prisma setup, schema design, and benefits in README
 
 ---
 

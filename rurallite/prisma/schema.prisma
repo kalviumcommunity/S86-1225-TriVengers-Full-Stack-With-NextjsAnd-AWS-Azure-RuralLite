@@ -1,143 +1,164 @@
-// Prisma schema for RuralLite / TriVengers project (copied)
-generator client {
-  provider = "prisma-client-js"
-}
+// Prisma Schema for RuralLite Learning Platform
+// Database: PostgreSQL
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
-enum Role {
-  USER
+generator client {
+  provider = "prisma-client-js"
+}
+
+// User model - Students and Teachers
+model User {
+  id        Int       @id @default(autoincrement())
+  email     String    @unique
+  name      String
+  role      UserRole  @default(STUDENT)
+  password  String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  
+  // Relations
+  progress    Progress[]
+  quizResults QuizResult[]
+  notes       Note[]
+}
+
+enum UserRole {
+  STUDENT
+  TEACHER
   ADMIN
 }
 
-enum ProjectRole {
-  OWNER
-  MANAGER
-  CONTRIBUTOR
-  VIEWER
+// Lesson model - Educational content
+model Lesson {
+  id           Int       @id @default(autoincrement())
+  title        String
+  description  String
+  content      String    // Markdown or HTML content
+  subject      String
+  grade        Int
+  difficulty   Difficulty @default(BEGINNER)
+  isOffline    Boolean   @default(true)
+  mediaUrl     String?   // Optional media assets
+  thumbnailUrl String?
+  downloadSize Int?      // Size in KB for offline caching
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  
+  // Relations
+  progress     Progress[]
+  quizzes      Quiz[]
 }
 
-enum TaskStatus {
-  TODO
-  IN_PROGRESS
-  REVIEW
-  DONE
-  ARCHIVED
+enum Difficulty {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
 }
 
-model User {
-  id         Int       @id @default(autoincrement())
-  name       String
-  email      String    @unique
-  role       Role      @default(USER)
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
-
-  projects   Project[] @relation("ProjectOwner")
-  tasks      Task[]    @relation("TaskAssignee")
-  comments   Comment[]
-  memberships ProjectMember[]
-  teams      TeamMember[]
+// Quiz model - Assessments
+model Quiz {
+  id           Int       @id @default(autoincrement())
+  lessonId     Int
+  title        String
+  description  String?
+  passingScore Int       @default(70)
+  timeLimit    Int?      // Time in minutes
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  
+  // Relations
+  lesson       Lesson       @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  questions    Question[]
+  results      QuizResult[]
+  
+  @@index([lessonId])
 }
 
-model Team {
-  id         Int       @id @default(autoincrement())
-  name       String    @unique
-  description String?
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
-  members    TeamMember[]
-  projects   Project[]
+// Question model - Quiz questions
+model Question {
+  id            Int      @id @default(autoincrement())
+  quizId        Int
+  question      String
+  options       String[] // Array of options
+  correctAnswer String
+  points        Int      @default(1)
+  orderIndex    Int      @default(0)
+  
+  // Relations
+  quiz          Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  
+  @@index([quizId])
 }
 
-model TeamMember {
-  id       Int    @id @default(autoincrement())
-  user     User   @relation(fields: [userId], references: [id])
-  userId   Int
-  team     Team   @relation(fields: [teamId], references: [id])
-  teamId   Int
-  role     Role   @default(USER)
-
-  @@unique([userId, teamId])
-}
-
-model Project {
-  id         Int       @id @default(autoincrement())
-  name       String
-  slug       String    @unique
-  description String?
-  status     String    @default("active")
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
-
-  owner      User      @relation("ProjectOwner", fields: [ownerId], references: [id])
-  ownerId    Int
-  team       Team?     @relation(fields: [teamId], references: [id])
-  teamId     Int?
-  tasks      Task[]
-  members    ProjectMember[]
-}
-
-model ProjectMember {
-  id        Int        @id @default(autoincrement())
-  user      User       @relation(fields: [userId], references: [id])
-  userId    Int
-  project   Project    @relation(fields: [projectId], references: [id])
-  projectId Int
-  role      ProjectRole @default(CONTRIBUTOR)
-  createdAt DateTime   @default(now())
-
-  @@unique([userId, projectId])
-}
-
-model Task {
+// Quiz Result model - Student quiz attempts
+model QuizResult {
   id          Int       @id @default(autoincrement())
-  title       String
-  description String?
-  status      TaskStatus @default(TODO)
-  priority    Int       @default(3)
-  dueDate     DateTime?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-
-  project     Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  projectId   Int
-  assignee    User?     @relation("TaskAssignee", fields: [assigneeId], references: [id])
-  assigneeId  Int?
-  comments    Comment[]
-  tags        TaskTag[]
-
-  @@index([projectId])
-  @@index([assigneeId])
+  userId      Int
+  quizId      Int
+  score       Int
+  completedAt DateTime  @default(now())
+  syncedAt    DateTime? // When synced to cloud
+  
+  // Relations
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  quiz        Quiz      @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  answers     Answer[]
+  
+  @@index([userId])
+  @@index([quizId])
 }
 
-model Comment {
-  id         Int      @id @default(autoincrement())
-  content    String
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  author     User     @relation(fields: [authorId], references: [id])
-  authorId   Int
-  task       Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
-  taskId     Int
+// Answer model - Student's answers
+model Answer {
+  id           Int        @id @default(autoincrement())
+  quizResultId Int
+  questionId   Int
+  selected     String
+  isCorrect    Boolean
+  
+  // Relations
+  quizResult   QuizResult @relation(fields: [quizResultId], references: [id], onDelete: Cascade)
+  
+  @@index([quizResultId])
 }
 
-model Tag {
-  id    Int    @id @default(autoincrement())
-  name  String @unique
-  tasks TaskTag[]
+// Progress tracking model
+model Progress {
+  id           Int       @id @default(autoincrement())
+  userId       Int
+  lessonId     Int
+  completed    Boolean   @default(false)
+  progress     Int       @default(0) // Percentage
+  lastAccessed DateTime  @default(now())
+  syncedAt     DateTime? // When synced to cloud
+  
+  // Relations
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lesson       Lesson    @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, lessonId])
+  @@index([userId])
+  @@index([lessonId])
 }
 
-model TaskTag {
-  id     Int  @id @default(autoincrement())
-  task   Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
-  taskId Int
-  tag    Tag  @relation(fields: [tagId], references: [id])
-  tagId  Int
-
-  @@unique([taskId, tagId])
-  @@index([tagId])
+// Notes model - Student notes
+model Note {
+  id        Int       @id @default(autoincrement())
+  userId    Int
+  title     String
+  content   String
+  tags      String[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  syncedAt  DateTime? // When synced to cloud
+  
+  // Relations
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
 }
+
