@@ -1,0 +1,5 @@
+Seq Scan on "Product"  (cost=0.00..73.80 rows=1 width=88) (actual time=0.032..1.518 rows=1 loops=1)
+  Filter: (name = 'Practice Workbook'::text)
+  Rows Removed by Filter: 5001
+Planning Time: 0.413 ms
+Execution Time: 1.540 ms

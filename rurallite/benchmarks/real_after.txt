@@ -1,0 +1,7 @@
+Bitmap Heap Scan on "Product"  (cost=4.48..56.31 rows=25 width=88) (actual time=0.047..0.050 rows=1 loops=1)
+  Recheck Cond: (name = 'Practice Workbook'::text)
+  Heap Blocks: exact=1
+  ->  Bitmap Index Scan on "Product_name_idx"  (cost=0.00..4.47 rows=25 width=0) (actual time=0.035..0.036 rows=1 loops=1)
+        Index Cond: (name = 'Practice Workbook'::text)
+Planning Time: 0.620 ms
+Execution Time: 0.136 ms

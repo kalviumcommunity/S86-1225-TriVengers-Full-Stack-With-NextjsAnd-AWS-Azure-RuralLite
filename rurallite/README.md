@@ -33,6 +33,10 @@ The repository includes a `docker-compose.yml` that spins up a `db` (Postgres) a
 
 If you don't use Docker, set `DATABASE_URL` in `rurallite/.env.local` to point at your Postgres instance.
 
+## Transactions & Query Optimization
+
+See [TRANSACTIONS_AND_INDEXES.md](./TRANSACTIONS_AND_INDEXES.md) for a demonstration of Prisma transactions, rollback verification, and query/index benchmarking scripts.
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:

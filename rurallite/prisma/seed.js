@@ -10,6 +10,10 @@ async function main() {
   await prisma.note.deleteMany();
   await prisma.lesson.deleteMany();
   await prisma.user.deleteMany();
+  // Also clear orders/products if they exist (new models)
+  await prisma.orderItem ? await prisma.orderItem.deleteMany().catch(() => {}) : null;
+  await prisma.order ? await prisma.order.deleteMany().catch(() => {}) : null;
+  await prisma.product ? await prisma.product.deleteMany().catch(() => {}) : null;
 
   // Create users
   const student1 = await prisma.user.create({
@@ -129,6 +133,25 @@ async function main() {
       title: "Math Notes",
       content: "Remember to practice addition and subtraction daily!",
       tags: ["math", "practice"],
+    },
+  });
+
+  // Create products for transaction demos
+  const productA = await prisma.product.create({
+    data: {
+      name: 'Basic Textbook',
+      sku: 'BT-001',
+      price: 199.99,
+      stock: 10,
+    },
+  });
+
+  const productB = await prisma.product.create({
+    data: {
+      name: 'Practice Workbook',
+      sku: 'WB-001',
+      price: 49.99,
+      stock: 50,
     },
   });
 

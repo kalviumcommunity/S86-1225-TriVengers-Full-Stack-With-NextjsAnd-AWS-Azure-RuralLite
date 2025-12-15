@@ -232,6 +232,7 @@ _Screenshot showing the RuralLite homepage running on localhost:3000_
 - **API Versioning**: API routes can be versioned (`api/v1/`, `api/v2/`) as needed
 
 ---
+---
 ## 🗄️ Prisma ORM Setup
 
 ### Why Prisma?
@@ -521,6 +522,16 @@ Built with ❤️ for improving rural education accessibility
 - Created migration files and an initial SQL migration, and added a seed script (`prisma/seed.js`) that inserts example users, teams, projects, tasks, tags, and comments.
 - Implemented a Prisma client helper (`rurallite/prismaClient.js`) and a simple API route (`/api/testdb`) to verify DB connectivity and seeded counts.
 - Updated `rurallite/package.json` with Prisma scripts (`prisma:generate`, `prisma:migrate`, `prisma:studio`, `prisma:seed`) and added `.env` examples for local development.
+
+---
+
+## 📝 Day 4 — Transactions & Query Optimization
+
+- [x] Implement transaction demo and rollback verification (`rurallite/scripts/transaction_demo.js`, API at `app/api/transactions/demo/route.js`)
+- [x] Add `Product`, `Order`, and `OrderItem` models with indexes in `rurallite/prisma/schema.prisma`
+- [x] Seeded sample products in `rurallite/prisma/seed.js`
+- [x] Added benchmark script (`rurallite/scripts/bench_index_flip.js`) and captured real `EXPLAIN ANALYZE` outputs (`rurallite/benchmarks/real_before.txt`, `rurallite/benchmarks/real_after.txt`)
+- [x] Documented workflow and findings in `rurallite/TRANSACTIONS_AND_INDEXES.md`
 
 
 ## 🐳 Docker & Docker Compose Setup

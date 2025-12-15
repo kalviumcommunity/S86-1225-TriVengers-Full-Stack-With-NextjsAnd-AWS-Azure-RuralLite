@@ -162,3 +162,44 @@ model Note {
   @@index([userId])
 }
 
+// Product & Order models for transaction demos and benchmarking
+model Product {
+  id        Int     @id @default(autoincrement())
+  name      String
+  sku       String  @unique
+  price     Float
+  stock     Int     @default(0)
+  createdAt DateTime @default(now())
+
+  orderItems OrderItem[]
+
+  @@index([name])
+}
+
+model Order {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  total     Float
+  status    String   @default("PENDING")
+  createdAt DateTime @default(now())
+
+  items     OrderItem[]
+
+  @@index([userId])
+  @@index([status])
+}
+
+model OrderItem {
+  id        Int   @id @default(autoincrement())
+  orderId   Int
+  productId Int
+  quantity  Int
+  price     Float
+
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product   Product @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  @@index([orderId])
+  @@index([productId])
+}
+
