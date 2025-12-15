@@ -11,6 +11,8 @@
     "prisma:migrate": "prisma migrate dev --name init_schema",
     "prisma:studio": "prisma studio",
     "prisma:seed": "node prisma/seed.js",
+    "tx:demo": "node scripts/transaction_demo.js",
+    "bench:explain": "node scripts/bench_explain.js",
     "db:reset": "docker-compose down -v && docker-compose up -d db && npx prisma migrate reset --force"
   },
   "prisma": {
