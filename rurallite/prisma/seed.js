@@ -1,47 +1,145 @@
-const { PrismaClient } = require('@prisma/client')
-const prisma = new PrismaClient()
+const { PrismaClient } = require("@prisma/client");
+const prisma = new PrismaClient();
 
 async function main() {
-  await prisma.taskTag.deleteMany()
-  await prisma.tag.deleteMany()
-  await prisma.comment.deleteMany()
-  await prisma.task.deleteMany()
-  await prisma.projectMember.deleteMany()
-  await prisma.project.deleteMany()
-  await prisma.teamMember.deleteMany()
-  await prisma.team.deleteMany()
-  await prisma.user.deleteMany()
+  // Clear existing data
+  await prisma.quizResult.deleteMany();
+  await prisma.question.deleteMany();
+  await prisma.quiz.deleteMany();
+  await prisma.progress.deleteMany();
+  await prisma.note.deleteMany();
+  await prisma.lesson.deleteMany();
+  await prisma.user.deleteMany();
 
-  const alice = await prisma.user.create({ data: { name: 'Alice', email: 'alice@example.com', role: 'ADMIN' } })
-  const bob = await prisma.user.create({ data: { name: 'Bob', email: 'bob@example.com' } })
-  const carol = await prisma.user.create({ data: { name: 'Carol', email: 'carol@example.com' } })
+  // Create users
+  const student1 = await prisma.user.create({
+    data: {
+      email: "student1@rural.local",
+      name: "Raj Kumar",
+      role: "STUDENT",
+      password: "hashedpassword123",
+    },
+  });
 
-  const team = await prisma.team.create({ data: { name: 'Kalvium NHK Team', description: 'Demo team for assignment.' } })
+  const student2 = await prisma.user.create({
+    data: {
+      email: "student2@rural.local",
+      name: "Priya Singh",
+      role: "STUDENT",
+      password: "hashedpassword123",
+    },
+  });
 
-  await prisma.teamMember.createMany({ data: [ { userId: alice.id, teamId: team.id }, { userId: bob.id, teamId: team.id } ] })
+  const teacher = await prisma.user.create({
+    data: {
+      email: "teacher@rural.local",
+      name: "Mrs. Sharma",
+      role: "TEACHER",
+      password: "hashedpassword123",
+    },
+  });
 
-  const project = await prisma.project.create({ data: { name: 'Student App', slug: 'student-app', description: 'App for managing students and assignments', ownerId: alice.id, teamId: team.id } })
+  // Create lessons
+  const lesson1 = await prisma.lesson.create({
+    data: {
+      title: "Introduction to Mathematics",
+      description: "Basic arithmetic and number concepts",
+      content:
+        "# Introduction to Mathematics\n\nLearn the fundamentals of mathematics starting with basic arithmetic operations.",
+      subject: "Mathematics",
+      grade: 5,
+      difficulty: "BEGINNER",
+      isOffline: true,
+      downloadSize: 2048,
+    },
+  });
 
-  await prisma.projectMember.createMany({ data: [ { userId: alice.id, projectId: project.id, role: 'OWNER' }, { userId: bob.id, projectId: project.id, role: 'CONTRIBUTOR' }, { userId: carol.id, projectId: project.id, role: 'VIEWER' }, ] })
+  const lesson2 = await prisma.lesson.create({
+    data: {
+      title: "English Grammar Basics",
+      description: "Parts of speech and sentence structure",
+      content:
+        "# English Grammar\n\nUnderstand the basic building blocks of the English language.",
+      subject: "English",
+      grade: 5,
+      difficulty: "BEGINNER",
+      isOffline: true,
+      downloadSize: 1536,
+    },
+  });
 
-  const frontend = await prisma.tag.create({ data: { name: 'frontend' } })
-  const backend = await prisma.tag.create({ data: { name: 'backend' } })
+  // Create quizzes
+  const quiz1 = await prisma.quiz.create({
+    data: {
+      lessonId: lesson1.id,
+      title: "Math Basics Quiz",
+      description: "Test your understanding of basic math",
+      passingScore: 70,
+      timeLimit: 30,
+    },
+  });
 
-  const task1 = await prisma.task.create({ data: { title: 'Design database schema', description: 'Create normalized schema and prisma models', projectId: project.id, assigneeId: bob.id, priority: 2 } })
-  const task2 = await prisma.task.create({ data: { title: 'Implement seed and migrations', description: 'Add Prisma migrations and seed data', projectId: project.id, assigneeId: alice.id, priority: 1, status: 'IN_PROGRESS' } })
+  // Create questions
+  await prisma.question.createMany({
+    data: [
+      {
+        quizId: quiz1.id,
+        question: "What is 5 + 3?",
+        options: ["6", "7", "8", "9"],
+        correctAnswer: "8",
+        points: 1,
+        orderIndex: 0,
+      },
+      {
+        quizId: quiz1.id,
+        question: "What is 10 - 4?",
+        options: ["5", "6", "7", "8"],
+        correctAnswer: "6",
+        points: 1,
+        orderIndex: 1,
+      },
+    ],
+  });
 
-  await prisma.taskTag.createMany({ data: [ { taskId: task1.id, tagId: backend.id }, { taskId: task2.id, tagId: backend.id }, { taskId: task2.id, tagId: frontend.id } ] })
+  // Create progress records
+  await prisma.progress.create({
+    data: {
+      userId: student1.id,
+      lessonId: lesson1.id,
+      completed: true,
+      progress: 100,
+      lastAccessed: new Date(),
+    },
+  });
 
-  await prisma.comment.create({ data: { content: 'Initial DB design OK', authorId: alice.id, taskId: task1.id } })
+  // Create quiz results
+  await prisma.quizResult.create({
+    data: {
+      userId: student1.id,
+      quizId: quiz1.id,
+      score: 85,
+      completedAt: new Date(),
+    },
+  });
 
-  console.log('Seed data created successfully.')
+  // Create notes
+  await prisma.note.create({
+    data: {
+      userId: student1.id,
+      title: "Math Notes",
+      content: "Remember to practice addition and subtraction daily!",
+      tags: ["math", "practice"],
+    },
+  });
+
+  console.log("Seed data created successfully.");
 }
 
 main()
   .catch((e) => {
-    console.error(e)
-    process.exit(1)
+    console.error(e);
+    process.exit(1);
   })
   .finally(async () => {
-    await prisma.$disconnect()
-  })
+    await prisma.$disconnect();
+  });

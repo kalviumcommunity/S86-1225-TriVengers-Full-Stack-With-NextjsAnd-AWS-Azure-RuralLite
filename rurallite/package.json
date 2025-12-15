@@ -13,6 +13,9 @@
     "prisma:seed": "node prisma/seed.js",
     "db:reset": "docker-compose down -v && docker-compose up -d db && npx prisma migrate reset --force"
   },
+  "prisma": {
+    "seed": "node prisma/seed.js"
+  },
   "dependencies": {
     "@prisma/client": "^5.22.0",
     "react": "19.2.1",
