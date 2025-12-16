@@ -534,7 +534,19 @@ Built with ❤️ for improving rural education accessibility
 - [x] Documented workflow and findings in `rurallite/TRANSACTIONS_AND_INDEXES.md`
 
 
-## 🐳 Docker & Docker Compose Setup
+## � Day 5 — Global API Response Handler
+
+- [x] **Utility:** Added a unified response handler `rurallite/lib/responseHandler.ts` exposing `sendSuccess` / `sendError` and typed helpers `buildSuccess` / `buildError` for envelope construction and typing.
+- [x] **Error codes:** Added `rurallite/lib/errorCodes.ts` to standardize error codes across endpoints.
+- [x] **Route integration:** Initially updated `app/api/users/route.js` and `app/api/quizzes/route.js`; then applied the handler across additional routes (`users/[id]`, `notes`, `lessons`, `progress`, `quiz-results`, `testdb`, `transactions/demo`) to ensure consistent envelopes.
+- [x] **Documentation:** Updated `rurallite/README.md` with the unified response envelope shape, example success/error JSON, and code usage snippets.
+- [x] **Tests & types (optional):** Added TypeScript types and `tests/responseHandler.test.ts` (Vitest) validating envelope shapes; tests pass locally.
+- [x] **Quality checks:** Installed deps, ran ESLint and TypeScript (`npx tsc`), and addressed minor issues introduced during the change.
+
+**Why this helps:** Consistent API responses reduce frontend complexity, improve observability (error codes + timestamps), and make the API easier to debug and maintain.
+
+
+## �🐳 Docker & Docker Compose Setup
 
 ### Overview
 

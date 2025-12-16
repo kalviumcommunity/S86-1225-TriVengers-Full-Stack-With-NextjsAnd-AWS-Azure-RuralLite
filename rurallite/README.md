@@ -82,6 +82,78 @@ curl -s -X DELETE "http://localhost:3000/api/users/1"
 - Duplicate resource (e.g., email exists) → `409`
 - Unexpected server error → `500`
 
+### API Response Envelope (Unified format) 🔧
+
+All API endpoints return a consistent response envelope to simplify client-side handling and observability.
+
+Envelope shape:
+
+```json
+{
+  "success": boolean,
+  "message": string,
+  "data"?: any,
+  "error"?: { "code": string, "details"?: string },
+  "meta"?: object,
+  "timestamp": "2025-10-30T10:00:00Z"
+}
+```
+
+Examples:
+
+Success
+
+```json
+{
+  "success": true,
+  "message": "User created successfully",
+  "data": { "id": 12, "name": "Charlie" },
+  "timestamp": "2025-10-30T10:00:00Z"
+}
+```
+
+Error
+
+```json
+{
+  "success": false,
+  "message": "Missing required field: name",
+  "error": { "code": "VALIDATION_ERROR" },
+  "timestamp": "2025-10-30T10:00:00Z"
+}
+```
+
+Defined error codes (see `rurallite/lib/errorCodes.ts`):
+
+- `VALIDATION_ERROR` — E001
+- `NOT_FOUND` — E002
+- `DATABASE_FAILURE` — E003
+- `CONFLICT` — E409
+- `INTERNAL_ERROR` — E500
+
+Usage (example snippet in a route):
+
+```js
+import { sendSuccess, sendError } from "@/lib/responseHandler";
+import { ERROR_CODES } from "@/lib/errorCodes";
+
+export async function POST(req) {
+  try {
+    const body = await req.json();
+    if (!body.name) return sendError("Missing required field: name", ERROR_CODES.VALIDATION_ERROR, 400);
+    return sendSuccess({ id: 1, name: body.name }, "Created", 201);
+  } catch (err) {
+    return sendError("Internal Server Error", ERROR_CODES.INTERNAL_ERROR, 500, err);
+  }
+}
+```
+
+Why this helps:
+
+- Consistent client handling: frontend code can assume the same shape for errors and successes.
+- Observability: `error.code` + `timestamp` helps link logs/monitoring systems to specific failures.
+- Developer experience: new contributors find fewer surprises when adding or calling endpoints.
+
 ### Reflection
 
 Consistent, noun-based, pluralized routes make APIs predictable. Predictability reduces onboarding time, avoids client-side surprises, and allows automated tooling (docs, tests) to operate uniformly across endpoints. Pagination and clear error semantics ensure scalability and robust integrations.

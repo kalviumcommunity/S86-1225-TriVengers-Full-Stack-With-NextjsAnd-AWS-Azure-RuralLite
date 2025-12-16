@@ -1,14 +1,12 @@
 import prisma from "../../../../lib/prisma";
-import { NextResponse } from "next/server";
+import { sendSuccess, sendError } from "../../../../lib/responseHandler";
+import { ERROR_CODES } from "../../../../lib/errorCodes";
 
 export async function GET(_req, { params }) {
   try {
     const id = Number(params.id);
     if (!id)
-      return NextResponse.json(
-        { success: false, error: "Invalid id" },
-        { status: 400 }
-      );
+      return sendError("Invalid id", ERROR_CODES.VALIDATION_ERROR, 400);
 
     const user = await prisma.user.findUnique({
       where: { id },
@@ -22,17 +20,11 @@ export async function GET(_req, { params }) {
     });
 
     if (!user)
-      return NextResponse.json(
-        { success: false, error: "Not found" },
-        { status: 404 }
-      );
+      return sendError("Not found", ERROR_CODES.NOT_FOUND, 404);
 
-    return NextResponse.json({ success: true, data: user });
+    return sendSuccess(user, "User fetched successfully", 200);
   } catch (error) {
-    return NextResponse.json(
-      { success: false, error: error?.message || "Internal Server Error" },
-      { status: 500 }
-    );
+    return sendError("User fetch failed", ERROR_CODES.INTERNAL_ERROR, 500, error?.message ?? error);
   }
 }
 
@@ -40,18 +32,12 @@ export async function PUT(req, { params }) {
   try {
     const id = Number(params.id);
     if (!id)
-      return NextResponse.json(
-        { success: false, error: "Invalid id" },
-        { status: 400 }
-      );
+      return sendError("Invalid id", ERROR_CODES.VALIDATION_ERROR, 400);
 
     const body = await req.json();
     const { name, role } = body || {};
     if (!name && !role) {
-      return NextResponse.json(
-        { success: false, error: "Provide fields to update" },
-        { status: 400 }
-      );
+      return sendError("Provide fields to update", ERROR_CODES.VALIDATION_ERROR, 400);
     }
 
     const updated = await prisma.user.update({
@@ -69,22 +55,12 @@ export async function PUT(req, { params }) {
       },
     });
 
-    return NextResponse.json({
-      success: true,
-      message: "User updated",
-      data: updated,
-    });
+    return sendSuccess(updated, "User updated", 200);
   } catch (error) {
     if (error?.code === "P2025") {
-      return NextResponse.json(
-        { success: false, error: "Not found" },
-        { status: 404 }
-      );
+      return sendError("Not found", ERROR_CODES.NOT_FOUND, 404, error?.message ?? error);
     }
-    return NextResponse.json(
-      { success: false, error: error?.message || "Internal Server Error" },
-      { status: 500 }
-    );
+    return sendError("User update failed", ERROR_CODES.INTERNAL_ERROR, 500, error?.message ?? error);
   }
 }
 
@@ -92,23 +68,14 @@ export async function DELETE(_req, { params }) {
   try {
     const id = Number(params.id);
     if (!id)
-      return NextResponse.json(
-        { success: false, error: "Invalid id" },
-        { status: 400 }
-      );
+      return sendError("Invalid id", ERROR_CODES.VALIDATION_ERROR, 400);
 
     await prisma.user.delete({ where: { id } });
-    return NextResponse.json({ success: true, message: "User deleted" });
+    return sendSuccess(null, "User deleted", 200);
   } catch (error) {
     if (error?.code === "P2025") {
-      return NextResponse.json(
-        { success: false, error: "Not found" },
-        { status: 404 }
-      );
+      return sendError("Not found", ERROR_CODES.NOT_FOUND, 404, error?.message ?? error);
     }
-    return NextResponse.json(
-      { success: false, error: error?.message || "Internal Server Error" },
-      { status: 500 }
-    );
+    return sendError("User deletion failed", ERROR_CODES.INTERNAL_ERROR, 500, error?.message ?? error);
   }
 }

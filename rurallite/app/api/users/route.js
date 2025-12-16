@@ -1,5 +1,6 @@
 import prisma from "../../../lib/prisma";
-import { NextResponse } from "next/server";
+import { sendSuccess, sendError } from "../../../lib/responseHandler";
+import { ERROR_CODES } from "../../../lib/errorCodes";
 
 export async function GET(req) {
   try {
@@ -27,19 +28,14 @@ export async function GET(req) {
       prisma.user.count(),
     ]);
 
-    return NextResponse.json({
-      success: true,
-      data: users,
+    return sendSuccess(users, "Users fetched successfully", 200, {
       page,
       limit,
       total,
       pages: Math.ceil(total / limit),
     });
   } catch (error) {
-    return NextResponse.json(
-      { success: false, error: error?.message || "Internal Server Error" },
-      { status: 500 }
-    );
+    return sendError("Failed to fetch users", ERROR_CODES.INTERNAL_ERROR, 500, error?.message ?? error);
   }
 }
 
@@ -49,24 +45,15 @@ export async function POST(req) {
     const { name, email, role } = body || {};
 
     if (!name || typeof name !== "string") {
-      return NextResponse.json(
-        { success: false, error: "Invalid 'name'" },
-        { status: 400 }
-      );
+      return sendError("Invalid 'name'", ERROR_CODES.VALIDATION_ERROR, 400);
     }
     if (!email || typeof email !== "string") {
-      return NextResponse.json(
-        { success: false, error: "Invalid 'email'" },
-        { status: 400 }
-      );
+      return sendError("Invalid 'email'", ERROR_CODES.VALIDATION_ERROR, 400);
     }
 
     const existing = await prisma.user.findUnique({ where: { email } });
     if (existing) {
-      return NextResponse.json(
-        { success: false, error: "Email already exists" },
-        { status: 409 }
-      );
+      return sendError("Email already exists", ERROR_CODES.CONFLICT, 409);
     }
 
     const user = await prisma.user.create({
@@ -80,14 +67,8 @@ export async function POST(req) {
       },
     });
 
-    return NextResponse.json(
-      { success: true, message: "User created", data: user },
-      { status: 201 }
-    );
+    return sendSuccess(user, "User created successfully", 201);
   } catch (error) {
-    return NextResponse.json(
-      { success: false, error: error?.message || "Internal Server Error" },
-      { status: 500 }
-    );
+    return sendError("User creation failed", ERROR_CODES.INTERNAL_ERROR, 500, error?.message ?? error);
   }
 }

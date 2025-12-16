@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "test": "vitest",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev --name init_schema",
     "prisma:studio": "prisma studio",
@@ -34,6 +35,7 @@
     "globals": "^16.5.0",
     "next": "^16.0.8",
     "prisma": "^5.22.0",
-    "tailwindcss": "^4"
+    "tailwindcss": "^4",
+    "vitest": "^1.5.4"
   }
 }

@@ -1,5 +1,6 @@
 import prisma from "../../../lib/prisma";
-import { NextResponse } from "next/server";
+import { sendSuccess, sendError } from "../../../lib/responseHandler";
+import { ERROR_CODES } from "../../../lib/errorCodes";
 
 export async function GET() {
   try {
@@ -18,18 +19,8 @@ export async function GET() {
       },
     });
 
-    return NextResponse.json({
-      success: true,
-      data: notes,
-      count: notes.length,
-    });
+    return sendSuccess(notes, "Notes fetched successfully", 200, { count: notes.length });
   } catch (error) {
-    return NextResponse.json(
-      {
-        success: false,
-        error: error.message,
-      },
-      { status: 500 }
-    );
+    return sendError("Failed to fetch notes", ERROR_CODES.INTERNAL_ERROR, 500, error?.message ?? error);
   }
 }

@@ -1,5 +1,6 @@
 import prisma from '../../../../prismaClient'
-import { NextResponse } from 'next/server'
+import { sendSuccess, sendError } from "../../../../lib/responseHandler";
+import { ERROR_CODES } from "../../../../lib/errorCodes";
 
 export async function GET() {
   // Create demo user/product if missing
@@ -17,8 +18,8 @@ export async function GET() {
       prisma.product.update({ where: { id: product.id }, data: { stock: { decrement: 1 } } }),
     ])
 
-    return NextResponse.json({ success: true, orderId: order.id, remainingStock: updatedProduct.stock })
+    return sendSuccess({ orderId: order.id }, "Transaction completed", 200, { remainingStock: updatedProduct.stock })
   } catch (err) {
-    return NextResponse.json({ success: false, error: err.message }, { status: 500 })
+    return sendError("Transaction failed", ERROR_CODES.INTERNAL_ERROR, 500, err?.message ?? err)
   }
 }

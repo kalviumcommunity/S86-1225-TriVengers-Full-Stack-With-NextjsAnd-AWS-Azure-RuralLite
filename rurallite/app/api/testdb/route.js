@@ -1,5 +1,6 @@
 import prisma from "../../../lib/prisma";
-import { NextResponse } from "next/server";
+import { sendSuccess, sendError } from "../../../lib/responseHandler";
+import { ERROR_CODES } from "../../../lib/errorCodes";
 
 export async function GET() {
   try {
@@ -10,25 +11,8 @@ export async function GET() {
     const progress = await prisma.progress.count();
     const notes = await prisma.note.count();
 
-    return NextResponse.json({
-      success: true,
-      counts: {
-        users,
-        lessons,
-        quizzes,
-        questions,
-        progress,
-        notes,
-      },
-      message: "Database connection successful",
-    });
+    return sendSuccess({ users, lessons, quizzes, questions, progress, notes }, "Database connection successful", 200);
   } catch (error) {
-    return NextResponse.json(
-      {
-        success: false,
-        error: error.message,
-      },
-      { status: 500 }
-    );
+    return sendError("Test DB check failed", ERROR_CODES.INTERNAL_ERROR, 500, error?.message ?? error);
   }
 }
