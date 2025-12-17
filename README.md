@@ -28,7 +28,7 @@ The application allows students to access lessons, quizzes, and multimedia resou
 - Background sync for student progress & new content
 - Teacher-friendly CMS (cloud-hosted)
 - Low-end device compatible
-- Secure user authentication (Cognito / Azure AD B2C)
+- **Secure user authentication with bcrypt and JWT** ([See Authentication Documentation](./AUTHENTICATION_README.md))
 
 ---
 
@@ -382,7 +382,91 @@ DATABASE_URL="postgresql://user:password@host.com:5432/rurallite?schema=public"
 See `.env.example` for complete configuration.
 
 ---
-## � Git Workflow & Collaboration
+
+## 🔑 Authentication & Authorization
+
+RuralLite implements a secure authentication system using industry-standard practices:
+
+### Features
+
+- **Password Hashing**: bcrypt with 10 salt rounds ensures passwords are never stored in plain text
+- **JWT Tokens**: JSON Web Tokens for stateless session management
+- **Protected Routes**: Middleware-based authentication for API endpoints
+- **Role-Based Access**: Support for STUDENT, TEACHER, and ADMIN roles
+- **Token Expiry**: 24-hour token lifetime with automatic expiration
+
+### API Endpoints
+
+| Endpoint | Method | Description | Auth Required |
+|----------|--------|-------------|---------------|
+| `/api/auth/signup` | POST | Register new user | ❌ |
+| `/api/auth/login` | POST | Authenticate user & get token | ❌ |
+| `/api/auth/me` | GET | Get current user profile | ✅ |
+| `/api/users` | GET | List all users (paginated) | ✅ |
+
+### Quick Start
+
+**1. Signup:**
+```bash
+curl -X POST http://localhost:3000/api/auth/signup \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Alice","email":"alice@example.com","password":"test123"}'
+```
+
+**2. Login:**
+```bash
+curl -X POST http://localhost:3000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"alice@example.com","password":"test123"}'
+```
+
+**3. Access Protected Route:**
+```bash
+curl -X GET http://localhost:3000/api/auth/me \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE"
+```
+
+### Environment Variables
+
+Add to your `.env.local`:
+```env
+JWT_SECRET="your-super-secret-jwt-key-change-in-production"
+```
+
+**Generate a secure secret:**
+```bash
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+```
+
+### Testing
+
+Use the provided test scripts:
+```powershell
+# Start server
+cd rurallite
+npm run dev
+
+# Run tests (in another terminal)
+.\test-auth-simple.ps1
+```
+
+### Security Highlights
+
+✅ Bcrypt hashing prevents password leaks  
+✅ JWT tokens enable stateless authentication  
+✅ Protected routes validate tokens  
+✅ Generic error messages prevent user enumeration  
+✅ Input validation prevents injection attacks
+
+### Complete Documentation
+
+For detailed authentication implementation, API examples, security considerations, and best practices, see:
+
+📚 **[Complete Authentication Documentation](./AUTHENTICATION_README.md)**
+
+---
+
+## 🔀 Git Workflow & Collaboration
 
 ### Branch Naming Conventions
 
