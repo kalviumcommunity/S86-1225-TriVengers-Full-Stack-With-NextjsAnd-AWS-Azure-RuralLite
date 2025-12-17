@@ -1,6 +1,8 @@
 import prisma from "../../../lib/prisma";
 import { sendSuccess, sendError } from "../../../lib/responseHandler";
 import { ERROR_CODES } from "../../../lib/errorCodes";
+import { userSchema } from "../../../lib/schemas/userSchema";
+import { ZodError } from "zod";
 
 export async function GET(req) {
   try {
@@ -42,32 +44,32 @@ export async function GET(req) {
 export async function POST(req) {
   try {
     const body = await req.json();
-    const { name, email, role } = body || {};
+    try {
+      const data = userSchema.parse(body);
 
-    if (!name || typeof name !== "string") {
-      return sendError("Invalid 'name'", ERROR_CODES.VALIDATION_ERROR, 400);
+      const existing = await prisma.user.findUnique({ where: { email: data.email } });
+      if (existing) {
+        return sendError("Email already exists", ERROR_CODES.CONFLICT, 409);
+      }
+
+      const user = await prisma.user.create({
+        data: { name: data.name, email: data.email, role: data.role || "STUDENT" },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          role: true,
+          createdAt: true,
+        },
+      });
+
+      return sendSuccess(user, "User created successfully", 201);
+    } catch (err) {
+      if (err instanceof ZodError) {
+        return sendError("Validation Error", ERROR_CODES.VALIDATION_ERROR, 400, err.errors.map((e) => ({ field: e.path[0], message: e.message })));
+      }
+      throw err;
     }
-    if (!email || typeof email !== "string") {
-      return sendError("Invalid 'email'", ERROR_CODES.VALIDATION_ERROR, 400);
-    }
-
-    const existing = await prisma.user.findUnique({ where: { email } });
-    if (existing) {
-      return sendError("Email already exists", ERROR_CODES.CONFLICT, 409);
-    }
-
-    const user = await prisma.user.create({
-      data: { name, email, role: role || "STUDENT" },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        role: true,
-        createdAt: true,
-      },
-    });
-
-    return sendSuccess(user, "User created successfully", 201);
   } catch (error) {
     return sendError("User creation failed", ERROR_CODES.INTERNAL_ERROR, 500, error?.message ?? error);
   }

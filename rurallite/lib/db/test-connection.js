@@ -16,7 +16,7 @@ export async function testConnection() {
         return { success: true, count: userCount };
     } catch (error) {
         console.error('❌ Database connection failed:', error);
-        return { success: false, error: error.message };
+        return { success: false, error: error?.message || String(error) };
     } finally {
         await prisma.$disconnect();
     }
