@@ -2,10 +2,20 @@ import prisma from "../../../lib/prisma";
 import { sendSuccess, sendError } from "../../../lib/responseHandler";
 import { ERROR_CODES } from "../../../lib/errorCodes";
 import { userSchema } from "../../../lib/schemas/userSchema";
+import { verifyToken } from "../../../lib/authMiddleware";
 import { ZodError } from "zod";
 
 export async function GET(req) {
   try {
+    // Optional: Protect this route - only authenticated users can list users
+    const user = verifyToken(req);
+    if (!user) {
+      return sendError(
+        "Authentication required. Please provide a valid token.",
+        ERROR_CODES.UNAUTHORIZED,
+        401
+      );
+    }
     const { searchParams } = new URL(req.url);
     const page = Math.max(1, Number(searchParams.get("page")) || 1);
     const limit = Math.min(

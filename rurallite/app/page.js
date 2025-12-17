@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export default function Home() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-green-50 to-blue-50 flex items-center justify-center">
@@ -11,12 +13,16 @@ export default function Home() {
             Offline-First Educational Web App for Low-Bandwidth Rural Schools
           </p>
           <div className="flex justify-center gap-4">
-            <button className="bg-green-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-green-700 transition">
-              Get Started
-            </button>
-            <button className="bg-white text-green-600 px-8 py-3 rounded-lg font-semibold border-2 border-green-600 hover:bg-green-50 transition">
-              Learn More
-            </button>
+            <Link href="/signup">
+              <button className="bg-green-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-green-700 transition">
+                Get Started
+              </button>
+            </Link>
+            <Link href="/login">
+              <button className="bg-white text-green-600 px-8 py-3 rounded-lg font-semibold border-2 border-green-600 hover:bg-green-50 transition">
+                Login
+              </button>
+            </Link>
           </div>
         </div>
       </main>
