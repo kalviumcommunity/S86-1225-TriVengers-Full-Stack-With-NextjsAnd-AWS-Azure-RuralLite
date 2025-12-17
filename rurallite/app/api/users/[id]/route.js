@@ -1,6 +1,8 @@
 import prisma from "../../../../lib/prisma";
 import { sendSuccess, sendError } from "../../../../lib/responseHandler";
 import { ERROR_CODES } from "../../../../lib/errorCodes";
+import { userUpdateSchema } from "../../../../lib/schemas/userSchema";
+import { ZodError } from "zod";
 
 export async function GET(_req, { params }) {
   try {
@@ -35,27 +37,34 @@ export async function PUT(req, { params }) {
       return sendError("Invalid id", ERROR_CODES.VALIDATION_ERROR, 400);
 
     const body = await req.json();
-    const { name, role } = body || {};
-    if (!name && !role) {
-      return sendError("Provide fields to update", ERROR_CODES.VALIDATION_ERROR, 400);
+    try {
+      const data = userUpdateSchema.parse(body);
+      if (!data || Object.keys(data).length === 0) {
+        return sendError("Provide fields to update", ERROR_CODES.VALIDATION_ERROR, 400);
+      }
+
+      const updated = await prisma.user.update({
+        where: { id },
+        data: {
+          ...(data.name ? { name: data.name } : {}),
+          ...(data.role ? { role: data.role } : {}),
+        },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          role: true,
+          createdAt: true,
+        },
+      });
+
+      return sendSuccess(updated, "User updated", 200);
+    } catch (err) {
+      if (err instanceof ZodError) {
+        return sendError("Validation Error", ERROR_CODES.VALIDATION_ERROR, 400, err.errors.map((e) => ({ field: e.path[0], message: e.message })));
+      }
+      throw err;
     }
-
-    const updated = await prisma.user.update({
-      where: { id },
-      data: {
-        ...(name ? { name } : {}),
-        ...(role ? { role } : {}),
-      },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        role: true,
-        createdAt: true,
-      },
-    });
-
-    return sendSuccess(updated, "User updated", 200);
   } catch (error) {
     if (error?.code === "P2025") {
       return sendError("Not found", ERROR_CODES.NOT_FOUND, 404, error?.message ?? error);

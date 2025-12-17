@@ -4,4 +4,4 @@ export const ERROR_CODES = {
   DATABASE_FAILURE: "E003",
   CONFLICT: "E409",
   INTERNAL_ERROR: "E500",
-} as const;
+};

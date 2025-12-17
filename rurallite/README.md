@@ -88,7 +88,7 @@ All API endpoints return a consistent response envelope to simplify client-side 
 
 Envelope shape:
 
-```json
+<!-- ```json
 {
   "success": boolean,
   "message": string,
@@ -97,7 +97,7 @@ Envelope shape:
   "meta"?: object,
   "timestamp": "2025-10-30T10:00:00Z"
 }
-```
+``` -->
 
 Examples:
 
@@ -123,7 +123,7 @@ Error
 }
 ```
 
-Defined error codes (see `rurallite/lib/errorCodes.ts`):
+Defined error codes (see `rurallite/lib/errorCodes.js`):
 
 - `VALIDATION_ERROR` — E001
 - `NOT_FOUND` — E002

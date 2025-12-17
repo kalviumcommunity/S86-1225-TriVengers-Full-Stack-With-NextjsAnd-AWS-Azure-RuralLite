@@ -334,7 +334,7 @@ model Progress {
 
 ### Client Initialization
 
-Created singleton Prisma client at `lib/prisma.ts`:
+Created singleton Prisma client at `lib/prisma.js`:
 
 ```typescript
 import { PrismaClient } from '@prisma/client';
@@ -355,7 +355,7 @@ if (process.env.NODE_ENV !== 'production')
 
 ### Testing & Verification
 
-Test queries available in `lib/db/test-connection.ts`:
+Test queries available in `lib/db/test-connection.js`:
 - Connection verification
 - Sample lesson creation
 - Query examples for all models
@@ -509,7 +509,7 @@ Built with ❤️ for improving rural education accessibility
 - [x] Designed MongoDB schema for RuralLite (User, Lesson, Quiz, Progress, Note models)
 - [x] Added offline-first features (syncedAt, downloadSize, isOffline fields)
 - [x] Generated Prisma Client with TypeScript types
-- [x] Created singleton Prisma client in `lib/prisma.ts`
+- [x] Created singleton Prisma client in `lib/prisma.js`
 - [x] Added test connection file with sample queries
 - [x] Updated `.env.example` with DATABASE_URL
 - [x] Documented Prisma setup, schema design, and benefits in README
@@ -536,14 +536,67 @@ Built with ❤️ for improving rural education accessibility
 
 ## � Day 5 — Global API Response Handler
 
-- [x] **Utility:** Added a unified response handler `rurallite/lib/responseHandler.ts` exposing `sendSuccess` / `sendError` and typed helpers `buildSuccess` / `buildError` for envelope construction and typing.
-- [x] **Error codes:** Added `rurallite/lib/errorCodes.ts` to standardize error codes across endpoints.
+- [x] **Utility:** Added a unified response handler `rurallite/lib/responseHandler.js` exposing `sendSuccess` / `sendError` and helpers `buildSuccess` / `buildError` for envelope construction and typing.
+- [x] **Error codes:** Added `rurallite/lib/errorCodes.js` to standardize error codes across endpoints.
 - [x] **Route integration:** Initially updated `app/api/users/route.js` and `app/api/quizzes/route.js`; then applied the handler across additional routes (`users/[id]`, `notes`, `lessons`, `progress`, `quiz-results`, `testdb`, `transactions/demo`) to ensure consistent envelopes.
 - [x] **Documentation:** Updated `rurallite/README.md` with the unified response envelope shape, example success/error JSON, and code usage snippets.
 - [x] **Tests & types (optional):** Added TypeScript types and `tests/responseHandler.test.ts` (Vitest) validating envelope shapes; tests pass locally.
 - [x] **Quality checks:** Installed deps, ran ESLint and TypeScript (`npx tsc`), and addressed minor issues introduced during the change.
 
 **Why this helps:** Consistent API responses reduce frontend complexity, improve observability (error codes + timestamps), and make the API easier to debug and maintain.
+
+## � Day 6 — Input Validation with Zod
+
+Implemented input validation for POST and PUT endpoints using Zod. Added a shared schema at `rurallite/lib/schemas/userSchema.js` and applied it to the users routes to ensure consistent server-side validation. Validation failures now return structured errors (field + message) with `VALIDATION_ERROR` and HTTP 400, making errors easier to consume by clients. This enables schema reuse between client and server and improves overall API reliability.
+
+Code snippet — schema ( `rurallite/lib/schemas/userSchema.js` ):
+
+```js
+import { z } from "zod";
+
+export const userSchema = z.object({
+  name: z.string().min(2, "Name must be at least 2 characters long"),
+  email: z.string().email("Invalid email address"),
+  role: z.string().optional(),
+});
+
+export const userUpdateSchema = userSchema.partial();
+```
+
+### Request examples:
+
+**Passing example:**
+
+```bash
+curl -X POST http://localhost:3000/api/users \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Alice","email":"alice@example.com","role":"STUDENT"}'
+```
+
+**Failing example (invalid data):**
+
+```bash
+curl -X POST http://localhost:3000/api/users \
+  -H "Content-Type: application/json" \
+  -d '{"name":"A","email":"bademail"}'
+```
+
+**Expected failing response (HTTP 400):**
+
+```json
+{
+  "success": false,
+  "message": "Validation Error",
+  "error": {
+    "code": "E001",
+    "details": [
+      { "field": "name", "message": "Name must be at least 2 characters long" },
+      { "field": "email", "message": "Invalid email address" }
+    ]
+  },
+  "timestamp": "2025-12-17T...Z"
+}
+```
 
 
 ## �🐳 Docker & Docker Compose Setup
