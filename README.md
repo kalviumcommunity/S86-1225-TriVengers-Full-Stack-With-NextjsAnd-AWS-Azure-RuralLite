@@ -681,8 +681,15 @@ curl -X POST http://localhost:3000/api/users \
   "timestamp": "2025-12-17T...Z"
 }
 ```
-
-
+## � Day 7 — Error Handling Middleware
+- [x] Centralized error handling implemented in `rurallite/lib/errorHandler.js` (exports `handleError`).
+- [x] Structured JSON logging in `rurallite/lib/logger.js`.
+- [x] Unit tests:
+    - `rurallite/tests/errorHandler.test.ts`
+    - `rurallite/tests/logger.test.ts`
+- [x] Run tests (from repo root):
+    - `npm test --prefix rurallite` (or from `rurallite/`: `npm test`)
+- Note for Windows: run tests in Command Prompt (cmd) or use `npm.cmd` if PowerShell blocks scripts.
 ## �🐳 Docker & Docker Compose Setup
 
 ### Overview

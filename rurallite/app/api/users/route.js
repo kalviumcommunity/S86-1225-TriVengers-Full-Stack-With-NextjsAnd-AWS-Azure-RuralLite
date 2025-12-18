@@ -4,6 +4,7 @@ import { ERROR_CODES } from "../../../lib/errorCodes";
 import { userSchema } from "../../../lib/schemas/userSchema";
 import { verifyToken } from "../../../lib/authMiddleware";
 import { ZodError } from "zod";
+import { handleError } from "../../../lib/errorHandler";
 
 export async function GET(req) {
   try {
@@ -47,7 +48,7 @@ export async function GET(req) {
       pages: Math.ceil(total / limit),
     });
   } catch (error) {
-    return sendError("Failed to fetch users", ERROR_CODES.INTERNAL_ERROR, 500, error?.message ?? error);
+    return handleError(error, "GET /api/users");
   }
 }
 
@@ -76,11 +77,11 @@ export async function POST(req) {
       return sendSuccess(user, "User created successfully", 201);
     } catch (err) {
       if (err instanceof ZodError) {
-        return sendError("Validation Error", ERROR_CODES.VALIDATION_ERROR, 400, err.errors.map((e) => ({ field: e.path[0], message: e.message })));
+        return handleError(err, "POST /api/users (validation)");
       }
       throw err;
     }
   } catch (error) {
-    return sendError("User creation failed", ERROR_CODES.INTERNAL_ERROR, 500, error?.message ?? error);
+    return handleError(error, "POST /api/users");
   }
 }

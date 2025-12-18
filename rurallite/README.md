@@ -131,6 +131,133 @@ Defined error codes (see `rurallite/lib/errorCodes.js`):
 - `CONFLICT` — E409
 - `INTERNAL_ERROR` — E500
 
+---
+
+### Centralized Error Handling (logger + handler) 🔧
+
+To keep logs structured and responses consistent we centralize error handling with two utilities:
+
+- `rurallite/lib/logger.js` — small structured logger (JSON output) for `info`, `warn`, `error`.
+- `rurallite/lib/errorHandler.js` — `handleError(error, context)` that classifies errors, logs full details (stack is REDACTED in production), and returns a safe `sendError(...)` response.
+
+Example usage in routes (already wired in `/app/api/users/route.js`):
+
+```js
+import { handleError } from "@/lib/errorHandler";
+
+try {
+  // ...route logic
+} catch (err) {
+  return handleError(err, "GET /api/users");
+}
+```
+
+Behavior by environment:
+
+- Development: client receives detailed messages and stack traces for debugging; logs show full stack.
+- Production: client receives a safe, minimal message (`Something went wrong. Please try again later.`); logs contain full details but the stack is redacted in client-facing content.
+
+Quick test:
+
+Development (default):
+
+```bash
+curl -s http://localhost:3000/api/users
+# => { "success": false, "message": "Database connection failed!", "timestamp": "...", "error": { "code": "E500" } }
+```
+
+Production:
+
+```bash
+NODE_ENV=production npm run dev
+curl -s http://localhost:3000/api/users
+# => { "success": false, "message": "Something went wrong. Please try again later." }
+
+Example logs (console output):
+
+Development (full detail):
+
+```json
+{
+  "level": "error",
+  "message": "Error in GET /api/users",
+  "meta": {
+    "message": "Database connection failed!",
+    "stack": "Error: Database connection failed! at ..."
+  },
+  "timestamp": "2025-10-29T16:45:00Z"
+}
+```
+
+Production (stack redacted):
+
+```json
+{
+  "level": "error",
+  "message": "Error in GET /api/users",
+  "meta": {
+    "message": "Database connection failed!",
+    "stack": "REDACTED"
+  },
+  "timestamp": "2025-10-29T16:45:00Z"
+}
+```
+```
+
+This approach makes logs easier to parse, hides sensitive stack traces from users, and keeps API responses predictable for clients.
+
+---
+
+## Tests & evidence ✅
+
+We added unit tests to validate the centralized error handling and structured logger:
+
+- `rurallite/tests/errorHandler.test.ts` — verifies:
+  - Dev vs Production behavior (detailed messages/stacks vs safe/redacted messages)
+  - Classification of common error types (Zod validation, unauthorized, known error codes)
+  - Calls to `logger.error` with appropriate metadata
+- `rurallite/tests/logger.test.ts` — verifies JSON-structured output for `info` and `error` logs
+
+Run tests from the `rurallite` folder:
+
+```bash
+npm test
+```
+
+Note: On this machine PowerShell blocked running `npm` due to execution policy; run tests locally in a shell that allows npm if you see a similar error.
+
+Example evidence (when errors are triggered and server is running):
+
+Development (full detail):
+
+```json
+{
+  "level": "error",
+  "message": "Error in GET /api/users",
+  "meta": {
+    "message": "Database connection failed!",
+    "stack": "Error: Database connection failed! at ..."
+  },
+  "timestamp": "2025-10-29T16:45:00Z"
+}
+```
+
+Production (stack redacted):
+
+```json
+{
+  "level": "error",
+  "message": "Error in GET /api/users",
+  "meta": {
+    "message": "Database connection failed!",
+    "stack": "REDACTED"
+  },
+  "timestamp": "2025-10-29T16:45:00Z"
+}
+```
+
+---
+
 Usage (example snippet in a route):
 
 ```js

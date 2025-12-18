@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import prisma from "../../../../lib/prisma";
 import { sendSuccess, sendError } from "../../../../lib/responseHandler";
 import { ERROR_CODES } from "../../../../lib/errorCodes";
+import { handleError } from "../../../../lib/errorHandler";
 
 /**
  * GET /api/admin/users
@@ -36,13 +37,7 @@ export async function GET(req) {
             }
         );
     } catch (error) {
-        console.error("Admin route error:", error);
-        return sendError(
-            "Failed to fetch users",
-            ERROR_CODES.INTERNAL_ERROR,
-            500,
-            error?.message ?? error
-        );
+        return handleError(error, "GET /api/admin/users");
     }
 }
 
@@ -78,12 +73,6 @@ export async function DELETE(req) {
             200
         );
     } catch (error) {
-        console.error("Delete user error:", error);
-        return sendError(
-            "Failed to delete user",
-            ERROR_CODES.INTERNAL_ERROR,
-            500,
-            error?.message ?? error
-        );
+        return handleError(error, "DELETE /api/admin/users");
     }
 }
