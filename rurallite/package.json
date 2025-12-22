@@ -22,7 +22,9 @@
   "dependencies": {
     "@aws-sdk/client-s3": "^3.709.0",
     "@aws-sdk/s3-request-presigner": "^3.709.0",
+    "@aws-sdk/client-ses": "^3.719.0",
     "@prisma/client": "^5.22.0",
+    "@sendgrid/mail": "^8.1.6",
     "bcrypt": "^6.0.0",
     "ioredis": "^5.8.2",
     "jose": "^6.1.3",
