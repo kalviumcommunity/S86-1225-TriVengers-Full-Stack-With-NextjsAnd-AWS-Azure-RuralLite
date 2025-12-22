@@ -168,7 +168,7 @@ curl -s http://localhost:3000/api/users
 
 Production:
 
-```bash
+````bash
 NODE_ENV=production npm run dev
 curl -s http://localhost:3000/api/users
 # => { "success": false, "message": "Something went wrong. Please try again later." }
@@ -187,7 +187,7 @@ Development (full detail):
   },
   "timestamp": "2025-10-29T16:45:00Z"
 }
-```
+````
 
 Production (stack redacted):
 
@@ -202,7 +202,8 @@ Production (stack redacted):
   "timestamp": "2025-10-29T16:45:00Z"
 }
 ```
-```
+
+````
 
 This approach makes logs easier to parse, hides sensitive stack traces from users, and keeps API responses predictable for clients.
 
@@ -222,7 +223,7 @@ Run tests from the `rurallite` folder:
 
 ```bash
 npm test
-```
+````
 
 Note: On this machine PowerShell blocked running `npm` due to execution policy; run tests locally in a shell that allows npm if you see a similar error.
 
@@ -267,10 +268,20 @@ import { ERROR_CODES } from "@/lib/errorCodes";
 export async function POST(req) {
   try {
     const body = await req.json();
-    if (!body.name) return sendError("Missing required field: name", ERROR_CODES.VALIDATION_ERROR, 400);
+    if (!body.name)
+      return sendError(
+        "Missing required field: name",
+        ERROR_CODES.VALIDATION_ERROR,
+        400
+      );
     return sendSuccess({ id: 1, name: body.name }, "Created", 201);
   } catch (err) {
-    return sendError("Internal Server Error", ERROR_CODES.INTERNAL_ERROR, 500, err);
+    return sendError(
+      "Internal Server Error",
+      ERROR_CODES.INTERNAL_ERROR,
+      500,
+      err
+    );
   }
 }
 ```
@@ -326,7 +337,11 @@ curl -X POST http://localhost:3000/api/email \
 Expected response (200):
 
 ```json
-{ "success": true, "message": "Email queued/sent", "data": { "provider":"sendgrid|ses", "messageId": "..." } }
+{
+  "success": true,
+  "message": "Email queued/sent",
+  "data": { "provider": "sendgrid|ses", "messageId": "..." }
+}
 ```
 
 Notes & operational considerations
@@ -677,3 +692,54 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+---
+
+## Routing (App Router) — Public, Protected, Dynamic ✅
+
+### Route Map
+
+- Public:
+  - `/` — Home (app/page.js)
+  - `/login` — Login (app/login/page.jsx)
+- Protected (via middleware + JWT cookie):
+  - `/dashboard` — Dashboard (app/dashboard/page.jsx)
+  - `/users` — Users list (app/users/page.jsx)
+  - `/users/[id]` — Dynamic user profile (app/users/[id]/page.jsx)
+- Errors:
+  - Custom 404 — (app/not-found.jsx)
+
+### Middleware Protection
+
+- `rurallite/middleware.js` verifies JWT from an HTTP-only `token` cookie for page routes `/dashboard` and `/users/*` and redirects to `/login` if missing/invalid.
+- API endpoints remain protected via `Authorization: Bearer <token>` with role checks for `/api/admin/*`, `/api/users/*`, `/api/auth/me`.
+
+### Auth Cookie Lifecycle
+
+- Login: `/api/auth/login` sets an HTTP-only cookie `token` and returns `{ token, user }` in response JSON.
+- Logout: `/api/auth/logout` clears the cookie; the dashboard also clears localStorage and redirects home.
+
+### Screenshots to Capture (suggested)
+
+- Public vs protected access: try visiting `/dashboard` without logging in (redirect to `/login`).
+- Dynamic routes: `/users/1`, `/users/2` show different user IDs.
+- Navigation bar: links in the global layout to Home, Login, Dashboard, User 1.
+- Custom 404: visit a non-existent route like `/nope`.
+
+### Reflection
+
+- Dynamic routing scales content-addressable pages (e.g., `/users/[id]`), improves SEO with stable, meaningful URLs, and enables breadcrumbs.
+- Middleware-based protection centralizes access control and avoids flicker from client-only guards.
+- A custom 404 and predictable route structure improve UX by guiding users and search engines through the app.
+
+### Quick Try
+
+1. Start dev server in `rurallite`:
+
+```bash
+npm install
+npm run dev
+```
+
+2. Login at `/login` using a seeded user (see Prisma seed). On success, you’re redirected to `/dashboard` and the `token` cookie is set.
+3. Navigate to `/users` and `/users/1` to see protected + dynamic routes in action.

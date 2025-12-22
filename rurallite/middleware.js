@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { jwtVerify } from "jose";
 
-const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key-change-in-production";
+const JWT_SECRET =
+  process.env.JWT_SECRET || "your-secret-key-change-in-production";
 
 export async function middleware(request) {
   const { pathname } = request.nextUrl;
@@ -13,7 +14,7 @@ export async function middleware(request) {
     "/api/auth/me": ["ADMIN", "TEACHER", "STUDENT"], // All authenticated users
   };
 
-  // Check if current path matches any protected route
+  // Check if current path matches any protected API route
   const matchedRoute = Object.keys(protectedRoutes).find((route) =>
     pathname.startsWith(route)
   );
@@ -24,9 +25,9 @@ export async function middleware(request) {
 
     if (!token) {
       return NextResponse.json(
-        { 
-          success: false, 
-          message: "Authentication required. Token missing." 
+        {
+          success: false,
+          message: "Authentication required. Token missing.",
         },
         { status: 401 }
       );
@@ -71,10 +72,38 @@ export async function middleware(request) {
     }
   }
 
+  // Protect app pages (dashboard, users) using cookie-based JWT
+  const protectedPages = ["/dashboard", "/users"];
+  const isProtectedPage = protectedPages.some((p) => pathname.startsWith(p));
+
+  if (isProtectedPage) {
+    const token = request.cookies.get("token")?.value;
+
+    if (!token) {
+      const url = new URL("/login", request.url);
+      return NextResponse.redirect(url);
+    }
+
+    try {
+      const secret = new TextEncoder().encode(JWT_SECRET);
+      await jwtVerify(token, secret);
+      return NextResponse.next();
+    } catch (err) {
+      const url = new URL("/login", request.url);
+      return NextResponse.redirect(url);
+    }
+  }
+
   return NextResponse.next();
 }
 
 // Configure which paths the middleware should run on
 export const config = {
-  matcher: ["/api/admin/:path*", "/api/users/:path*", "/api/auth/me"],
+  matcher: [
+    "/api/admin/:path*",
+    "/api/users/:path*",
+    "/api/auth/me",
+    "/dashboard/:path*",
+    "/users/:path*",
+  ],
 };

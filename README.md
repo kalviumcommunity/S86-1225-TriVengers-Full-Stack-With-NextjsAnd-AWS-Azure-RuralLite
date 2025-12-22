@@ -29,7 +29,7 @@ The application allows students to access lessons, quizzes, and multimedia resou
 - Teacher-friendly CMS (cloud-hosted)
 - Low-end device compatible
 - **Secure user authentication with bcrypt and JWT** ([See Authentication Documentation](./AUTHENTICATION_README.md))
-- **Secure file uploads with AWS S3 pre-signed URLs** 
+- **Secure file uploads with AWS S3 pre-signed URLs**
 
 ---
 
@@ -150,13 +150,29 @@ S86-1225-TriVengers-Full-Stack-With-NextjsAnd-AWS-Azure-RuralLite/
 
 ---
 
-## 🚀 Setup Instructions
+## 🚀 Quick Start (Dev)
+
+Run the app from the `rurallite` folder (not the repo root).
+
+```bash
+cd rurallite
+npm install
+npm run dev
+```
+
+Open http://localhost:3000 in your browser.
+
+If you see an error like "missing script: dev" or Exit Code 1 when running from the repo root, you're in the wrong folder. Switch to `rurallite/` first.
+
+---
+
+## 🛠 Setup Instructions
 
 ### Prerequisites
 
 - Node.js (v18 or higher)
 - npm or yarn
-- MongoDB (local or cloud instance)
+- PostgreSQL (local via Docker or a cloud instance)
 
 ### Installation
 
@@ -176,12 +192,20 @@ S86-1225-TriVengers-Full-Stack-With-NextjsAnd-AWS-Azure-RuralLite/
 3. **Set up environment variables**
    Create a `.env.local` file in the `rurallite/` directory:
 
-   ```env
-   MONGODB_URI=your_mongodb_connection_string
-   NEXT_PUBLIC_API_URL=http://localhost:3000
-   AWS_ACCESS_KEY_ID=your_aws_key
-   AWS_SECRET_ACCESS_KEY=your_aws_secret
-   ```
+```env
+# Required
+DATABASE_URL=postgresql://postgres:password@localhost:5432/rurallite
+JWT_SECRET=replace_with_a_strong_secret
+
+# Optional: Email Providers
+SENDGRID_API_KEY=your_sendgrid_key
+SENDGRID_SENDER=no-reply@yourdomain.com
+AWS_ACCESS_KEY_ID=your_aws_key
+AWS_SECRET_ACCESS_KEY=your_aws_secret
+AWS_REGION=ap-south-1
+SES_EMAIL_SENDER=no-reply@yourdomain.com
+EMAIL_PROVIDER=sendgrid # or ses
+```
 
 4. **Run the development server**
 
@@ -206,6 +230,17 @@ npm start
 ![RuralLite Homepage Running Locally](./screenshots/local-dev-screenshot.png)
 
 _Screenshot showing the RuralLite homepage running on localhost:3000_
+
+---
+
+## 🧩 Troubleshooting
+
+- Missing `dev` script / Exit Code 1 when running `npm run dev` at repo root:
+  - Run commands inside `rurallite/` (`cd rurallite`), then `npm run dev`.
+- Database connection errors:
+  - Ensure PostgreSQL is running and `DATABASE_URL` is correct in `rurallite/.env.local`.
+- Unauthorized or login redirect loops:
+  - Ensure `JWT_SECRET` is set in `rurallite/.env.local`. Log in via `/login` to set the auth cookie.
 
 ---
 
@@ -781,12 +816,11 @@ await redis.set(cacheKey, JSON.stringify({ users, meta }), "EX", 60);
 
 Five key deliverables completed in this assignment:
 
-- [X] Implemented a transactional email API endpoint at `/api/email` (`rurallite/app/api/email/route.js`) that accepts POST requests, validates input, and supports sending custom HTML or templated emails.
-- [X] Added a provider-agnostic email service at `rurallite/lib/email.js` supporting **SendGrid** and **AWS SES**, with auto-detection from env vars (`SENDGRID_API_KEY` or `AWS_*`) and optional `EMAIL_PROVIDER` override.
-- [X] Created reusable HTML templates in `rurallite/lib/emailTemplates.js` (e.g., `welcomeTemplate`, `passwordResetTemplate`) and wired a `type: "welcome"` option in the API for easy use.
-- [X] Updated documentation and README with configuration details, example curl commands, sandbox vs production notes, and operational considerations (rate limits, bounce handling, SPF/DKIM).
-- [X] Added dependencies (`@sendgrid/mail`, `@aws-sdk/client-ses`), handled install issues, and provided test instructions plus console log evidence (SendGrid headers or SES MessageId) for verification.
-
+- [x] Implemented a transactional email API endpoint at `/api/email` (`rurallite/app/api/email/route.js`) that accepts POST requests, validates input, and supports sending custom HTML or templated emails.
+- [x] Added a provider-agnostic email service at `rurallite/lib/email.js` supporting **SendGrid** and **AWS SES**, with auto-detection from env vars (`SENDGRID_API_KEY` or `AWS_*`) and optional `EMAIL_PROVIDER` override.
+- [x] Created reusable HTML templates in `rurallite/lib/emailTemplates.js` (e.g., `welcomeTemplate`, `passwordResetTemplate`) and wired a `type: "welcome"` option in the API for easy use.
+- [x] Updated documentation and README with configuration details, example curl commands, sandbox vs production notes, and operational considerations (rate limits, bounce handling, SPF/DKIM).
+- [x] Added dependencies (`@sendgrid/mail`, `@aws-sdk/client-ses`), handled install issues, and provided test instructions plus console log evidence (SendGrid headers or SES MessageId) for verification.
 
 ## 🐳 Docker & Docker Compose Setup
 
