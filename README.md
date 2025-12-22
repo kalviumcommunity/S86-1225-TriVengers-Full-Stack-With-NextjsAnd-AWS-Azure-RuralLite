@@ -777,7 +777,18 @@ await redis.set(cacheKey, JSON.stringify({ users, meta }), "EX", 60);
   - Inspect keys and TTLs: `docker-compose exec redis redis-cli keys "users:list:*"` and `ttl <key>`.
 - Stale data considerations: TTL and post-create invalidation limit staleness to roughly 60 seconds. Avoid caching endpoints that change every request or need real-time freshness; for read-heavy lists (users, lessons, quizzes) the current policy favors latency and lower DB load.
 
-## �🐳 Docker & Docker Compose Setup
+## Day 9 - Email Service Integration (SendGrid / AWS SES) ✅
+
+Five key deliverables completed in this assignment:
+
+- [X] Implemented a transactional email API endpoint at `/api/email` (`rurallite/app/api/email/route.js`) that accepts POST requests, validates input, and supports sending custom HTML or templated emails.
+- [X] Added a provider-agnostic email service at `rurallite/lib/email.js` supporting **SendGrid** and **AWS SES**, with auto-detection from env vars (`SENDGRID_API_KEY` or `AWS_*`) and optional `EMAIL_PROVIDER` override.
+- [X] Created reusable HTML templates in `rurallite/lib/emailTemplates.js` (e.g., `welcomeTemplate`, `passwordResetTemplate`) and wired a `type: "welcome"` option in the API for easy use.
+- [X] Updated documentation and README with configuration details, example curl commands, sandbox vs production notes, and operational considerations (rate limits, bounce handling, SPF/DKIM).
+- [X] Added dependencies (`@sendgrid/mail`, `@aws-sdk/client-ses`), handled install issues, and provided test instructions plus console log evidence (SendGrid headers or SES MessageId) for verification.
+
+
+## 🐳 Docker & Docker Compose Setup
 
 ### Overview
 
