@@ -285,6 +285,59 @@ Why this helps:
 
 Consistent, noun-based, pluralized routes make APIs predictable. Predictability reduces onboarding time, avoids client-side surprises, and allows automated tooling (docs, tests) to operate uniformly across endpoints. Pagination and clear error semantics ensure scalability and robust integrations.
 
+---
+
+## Email Service Integration (SendGrid / AWS SES) ✅
+
+This project includes a small transactional email API at `/api/email` (server-side Next route). It supports both **SendGrid** and **AWS SES**. The implementation is intentionally simple and suitable for sending welcome emails, password resets, and other transactional messages.
+
+Environment variables (examples):
+
+- SendGrid
+  - `SENDGRID_API_KEY=your_sendgrid_key`
+  - `SENDGRID_SENDER=no-reply@yourdomain.com`
+
+- AWS SES
+  - `AWS_ACCESS_KEY_ID=your_key`
+  - `AWS_SECRET_ACCESS_KEY=your_secret`
+  - `AWS_REGION=ap-south-1`
+  - `SES_EMAIL_SENDER=no-reply@yourdomain.com`
+
+- Optional override: `EMAIL_PROVIDER=sendgrid` or `EMAIL_PROVIDER=ses`
+
+How to call the API
+
+- Send a custom HTML email:
+
+```bash
+curl -X POST http://localhost:3000/api/email \
+  -H "Content-Type: application/json" \
+  -d '{"to":"student@example.com","subject":"Welcome!","html":"<h3>Hello from Kalvium 🚀</h3>"}'
+```
+
+- Use built-in `welcome` template:
+
+```bash
+curl -X POST http://localhost:3000/api/email \
+  -H "Content-Type: application/json" \
+  -d '{"to":"student@example.com","type":"welcome","data":{"userName":"Charlie"}}'
+```
+
+Expected response (200):
+
+```json
+{ "success": true, "message": "Email queued/sent", "data": { "provider":"sendgrid|ses", "messageId": "..." } }
+```
+
+Notes & operational considerations
+
+- Sandbox vs Production: If using **SES sandbox** your sender and recipient addresses must be verified. Use the SES console to move out of sandbox for production.
+- Rate limits: Both SendGrid and SES have rate limits — implement queueing or exponential backoff for high-volume sending.
+- Bounce handling: Configure SendGrid webhook events or SES SNS topics to monitor bounces and complaints and act on them (disable accounts, notify users, etc.).
+- Security: Use SPF/DKIM and verify domains when sending from custom domains to improve deliverability.
+
+---
+
 ### Prisma & PostgreSQL (local development)
 
 The repository includes a `docker-compose.yml` that spins up a `db` (Postgres) and `redis` service. Use the Prisma schema in `prisma/schema.prisma` to manage migrations and the Prisma Client.
