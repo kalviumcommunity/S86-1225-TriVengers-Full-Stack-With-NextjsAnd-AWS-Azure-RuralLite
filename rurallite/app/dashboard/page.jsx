@@ -74,7 +74,7 @@ export default function DashboardPage() {
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Welcome Section */}
-        <div className="bg-gradient-to-r from-green-500 to-blue-500 rounded-2xl p-8 text-white mb-8">
+        <div className="bg-linear-to-r from-green-500 to-blue-500 rounded-2xl p-8 text-white mb-8">
           <h2 className="text-3xl font-bold mb-2">
             Welcome back, {user.name}! 👋
           </h2>

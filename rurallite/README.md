@@ -380,6 +380,61 @@ When you modify the `schema.prisma` file, create a migration:
 npx prisma migrate dev --name descriptive_migration_name
 ```
 
+---
+
+## Layout and Component Architecture
+
+This app uses a reusable layout architecture to ensure consistency, accessibility, and developer productivity across pages.
+
+### Component Hierarchy
+
+- Header → Sidebar → LayoutWrapper → Page
+  - [Header](rurallite/components/layout/Header.jsx): Global navigation with brand and key links
+  - [Sidebar](rurallite/components/layout/Sidebar.jsx): Contextual navigation per section
+  - [LayoutWrapper](rurallite/components/layout/LayoutWrapper.jsx): Orchestrates header, sidebar, and page area
+  - Page: Individual route content rendered inside the shared layout
+
+### Shared Layout Application
+
+The global layout wraps all pages via the App Router:
+
+- [RootLayout](rurallite/app/layout.js): Uses `LayoutWrapper` so all routes share header + sidebar
+
+### Barrel Exports
+
+For simpler imports, shared components are exported from:
+
+- [components/index.js](rurallite/components/index.js)
+
+Example:
+
+```js
+import { LayoutWrapper, Header, Sidebar, Button } from "../components";
+```
+
+### Reusable UI Elements
+
+- [Button](rurallite/components/ui/Button.jsx): `primary` and `secondary` variants
+  - Props: `label`, `onClick?`, `variant?` (defaults to `primary`)
+
+### Accessibility Considerations
+
+- Consistent landmarks: Header and Sidebar provide predictable navigation
+- Keyboard focus: Links use native focus; avoid removing outlines
+- Color contrast: Tailwind classes chosen with readable contrast (e.g., `bg-blue-600` with white text)
+
+### Benefits of Modular Architecture
+
+- Reusability: Update header/sidebar once, changes propagate everywhere
+- Maintainability: Clear separation of concerns (layout vs page content)
+- Scalability: New sections extend the sidebar without page-level duplication
+
+### Quick Usage Notes
+
+- Add new pages under `app/` (e.g., [rurallite/app/dashboard/page.jsx](rurallite/app/dashboard/page.jsx)) — they will inherit the shared layout automatically
+- Customize nav items in [Sidebar](rurallite/components/layout/Sidebar.jsx)
+- Update global branding in [Header](rurallite/components/layout/Header.jsx)
+
 Example:
 
 ```bash

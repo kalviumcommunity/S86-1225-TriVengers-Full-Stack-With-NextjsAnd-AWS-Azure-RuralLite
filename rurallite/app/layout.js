@@ -1,6 +1,6 @@
 import { Geist, Geist_Mono } from "next/font/google";
-import Link from "next/link";
 import "./globals.css";
+import LayoutWrapper from "../components/layout/LayoutWrapper";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -23,23 +23,7 @@ export default function RootLayout({ children }) {
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <nav className="w-full bg-gray-100 border-b">
-          <div className="max-w-7xl mx-auto px-4 py-3 flex gap-4 text-sm">
-            <Link href="/" className="hover:underline">
-              Home
-            </Link>
-            <Link href="/login" className="hover:underline">
-              Login
-            </Link>
-            <Link href="/dashboard" className="hover:underline">
-              Dashboard
-            </Link>
-            <Link href="/users/1" className="hover:underline">
-              User 1
-            </Link>
-          </div>
-        </nav>
-        {children}
+        <LayoutWrapper>{children}</LayoutWrapper>
       </body>
     </html>
   );
