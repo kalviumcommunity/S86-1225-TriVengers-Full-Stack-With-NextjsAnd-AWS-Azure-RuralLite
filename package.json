@@ -17,5 +17,10 @@
     "husky": "^8.0.0",
     "lint-staged": "^16.2.7",
     "prettier": "^3.7.4"
+  },
+  "dependencies": {
+    "@hookform/resolvers": "^5.2.2",
+    "react-hook-form": "^7.69.0",
+    "zod": "^4.2.1"
   }
 }

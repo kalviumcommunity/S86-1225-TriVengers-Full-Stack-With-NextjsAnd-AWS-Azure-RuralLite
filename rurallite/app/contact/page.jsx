@@ -6,24 +6,24 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import FormInput from "@/components/FormInput";
 
 // Zod validation schema
-const signupSchema = z.object({
-  name: z.string().min(3, "Name must be at least 3 characters"),
+const contactSchema = z.object({
+  name: z.string().min(2, "Name must be at least 2 characters"),
   email: z.string().email("Invalid email address"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
+  message: z.string().min(10, "Message must be at least 10 characters"),
 });
 
-export default function SignupPage() {
+export default function ContactPage() {
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = useForm({
-    resolver: zodResolver(signupSchema),
+    resolver: zodResolver(contactSchema),
   });
 
   const onSubmit = (data) => {
-    console.log("Signup Data:", data);
-    alert(`Welcome, ${data.name}!`);
+    console.log("Contact Form Data:", data);
+    alert("Message Sent Successfully!");
   };
 
   return (
@@ -32,8 +32,8 @@ export default function SignupPage() {
         onSubmit={handleSubmit(onSubmit)}
         className="w-96 bg-gray-50 p-6 border rounded-lg"
       >
-        <h1 className="text-2xl font-bold mb-4">
-          Signup Form
+        <h1 className="text-xl font-bold mb-4">
+          Contact Us
         </h1>
 
         <FormInput
@@ -52,18 +52,16 @@ export default function SignupPage() {
         />
 
         <FormInput
-          label="Password"
-          name="password"
-          type="password"
+          label="Message"
+          name="message"
           register={register}
-          error={errors.password?.message}
+          error={errors.message?.message}
         />
 
         <button
-          disabled={isSubmitting}
-          className="bg-blue-600 text-white py-2 w-full rounded hover:bg-blue-700"
+          className="bg-green-600 text-white py-2 w-full rounded hover:bg-green-700"
         >
-          {isSubmitting ? "Submitting..." : "Sign Up"}
+          Submit
         </button>
       </form>
     </main>

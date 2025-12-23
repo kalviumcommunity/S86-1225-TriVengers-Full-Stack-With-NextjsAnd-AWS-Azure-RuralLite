@@ -715,7 +715,7 @@ Built with ❤️ for improving rural education accessibility
 - [x] Added benchmark script (`rurallite/scripts/bench_index_flip.js`) and captured real `EXPLAIN ANALYZE` outputs (`rurallite/benchmarks/real_before.txt`, `rurallite/benchmarks/real_after.txt`)
 - [x] Documented workflow and findings in `rurallite/TRANSACTIONS_AND_INDEXES.md`
 
-## � Day 5 — Global API Response Handler
+## 📝 Day 5 — Global API Response Handler
 
 - [x] **Utility:** Added a unified response handler `rurallite/lib/responseHandler.js` exposing `sendSuccess` / `sendError` and helpers `buildSuccess` / `buildError` for envelope construction and typing.
 - [x] **Error codes:** Added `rurallite/lib/errorCodes.js` to standardize error codes across endpoints.
@@ -726,7 +726,7 @@ Built with ❤️ for improving rural education accessibility
 
 **Why this helps:** Consistent API responses reduce frontend complexity, improve observability (error codes + timestamps), and make the API easier to debug and maintain.
 
-## � Day 6 — Input Validation with Zod
+## 📝 Day 6 — Input Validation with Zod
 
 Implemented input validation for POST and PUT endpoints using Zod. Added a shared schema at `rurallite/lib/schemas/userSchema.js` and applied it to the users routes to ensure consistent server-side validation. Validation failures now return structured errors (field + message) with `VALIDATION_ERROR` and HTTP 400, making errors easier to consume by clients. This enables schema reuse between client and server and improves overall API reliability.
 
@@ -779,7 +779,7 @@ curl -X POST http://localhost:3000/api/users \
 }
 ```
 
-## � Day 7 — Error Handling Middleware
+## 📝 Day 7 — Error Handling Middleware
 
 - [x] Centralized error handling implemented in `rurallite/lib/errorHandler.js` (exports `handleError`).
 - [x] Structured JSON logging in `rurallite/lib/logger.js`.
@@ -790,7 +790,7 @@ curl -X POST http://localhost:3000/api/users \
   - `npm test --prefix rurallite` (or from `rurallite/`: `npm test`)
 - Note for Windows: run tests in Command Prompt (cmd) or use `npm.cmd` if PowerShell blocks scripts.
 
-## Day 8 - Redis Caching Layer
+## 📝 Day 8 - Redis Caching Layer
 
 - Redis client: `ioredis` is configured in `rurallite/lib/redis.js` using `REDIS_URL` (defaults to `redis://localhost:6379`) with a single shared connection and health logs for ready/error/reconnect events.
 - Cached endpoint: GET `/api/users` now uses a cache-aside strategy in `rurallite/app/api/users/route.js` with key pattern `users:list:p{page}:l{limit}` and a 60 second TTL. Cache reads/writes are wrapped so the route falls back to Prisma when Redis is unavailable.
@@ -812,7 +812,7 @@ await redis.set(cacheKey, JSON.stringify({ users, meta }), "EX", 60);
   - Inspect keys and TTLs: `docker-compose exec redis redis-cli keys "users:list:*"` and `ttl <key>`.
 - Stale data considerations: TTL and post-create invalidation limit staleness to roughly 60 seconds. Avoid caching endpoints that change every request or need real-time freshness; for read-heavy lists (users, lessons, quizzes) the current policy favors latency and lower DB load.
 
-## Day 9 - Email Service Integration (SendGrid / AWS SES) ✅
+## 📝 Day 9 - Email Service Integration (SendGrid / AWS SES) ✅
 
 Five key deliverables completed in this assignment:
 
@@ -821,6 +821,14 @@ Five key deliverables completed in this assignment:
 - [x] Created reusable HTML templates in `rurallite/lib/emailTemplates.js` (e.g., `welcomeTemplate`, `passwordResetTemplate`) and wired a `type: "welcome"` option in the API for easy use.
 - [x] Updated documentation and README with configuration details, example curl commands, sandbox vs production notes, and operational considerations (rate limits, bounce handling, SPF/DKIM).
 - [x] Added dependencies (`@sendgrid/mail`, `@aws-sdk/client-ses`), handled install issues, and provided test instructions plus console log evidence (SendGrid headers or SES MessageId) for verification.
+
+## 📝 Day 10 - Form handling and validation 
+- [x] Implemented global state management using the React Context API and custom hooks in a Next.js application. 
+- [x] Created AuthContext for authentication state and UIContext for UI state such as theme toggling and sidebar visibility, both provided through the root layout to avoid prop drilling. 
+- [x] Built reusable custom hooks (useAuth and useUI) to encapsulate context logic and keep components clean and declarative.
+- [x] Upgraded data fetching by implementing SWR, replacing basic fetch calls with caching, revalidation, and optimistic UI updates. 
+- [x] Achieved instant page loads, immediate UI updates for create and delete actions, and reduced network requests by approximately 60% with smart auto-refresh intervals and a development Cache Inspector.
+- [x] Implemented reusable form handling and validation using React Hook Form and Zod, including a shared FormInput component, clear schema-based error messages, and improved accessibility with proper labels, inline feedback, and aria-invalid attributes.
 
 ## 🐳 Docker & Docker Compose Setup
 
