@@ -1,40 +1,35 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useAuth } from "../../hooks/useAuth";
 
 export default function DashboardPage() {
   const router = useRouter();
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const { user, status, logout, refreshUser } = useAuth();
+  const isLoading = status === "idle" || status === "loading";
 
   useEffect(() => {
-    // Check if user is authenticated
-    const token = localStorage.getItem("authToken");
-    const userData = localStorage.getItem("user");
+    if (status === "authenticated" && !user) {
+      refreshUser();
+    }
+  }, [status, user, refreshUser]);
 
-    if (!token) {
+  useEffect(() => {
+    if (status === "unauthenticated") {
       router.push("/login");
-      return;
     }
-
-    if (userData) {
-      setUser(JSON.parse(userData));
-    }
-    setLoading(false);
-  }, [router]);
+  }, [status, router]);
 
   const handleLogout = async () => {
     try {
-      await fetch("/api/auth/logout", { method: "POST" });
+      await logout();
     } catch {}
-    localStorage.removeItem("authToken");
-    localStorage.removeItem("user");
     router.push("/");
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">

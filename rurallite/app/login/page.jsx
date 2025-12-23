@@ -3,48 +3,29 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useAuth } from "../../hooks/useAuth";
 
 export default function LoginPage() {
   const router = useRouter();
+  const { login, status, error: authError } = useAuth();
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
+  const displayError = error || authError;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
-    setLoading(true);
+    const result = await login(formData);
 
-    try {
-      const response = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
-      });
-
-      const data = await response.json();
-
-      if (response.ok && data.success) {
-        // Store token in localStorage
-        localStorage.setItem("authToken", data.data.token);
-        localStorage.setItem("user", JSON.stringify(data.data.user));
-
-        // Redirect to dashboard
-        router.push("/dashboard");
-      } else {
-        setError(data.message || "Login failed. Please try again.");
-      }
-    } catch (err) {
-      setError("An error occurred. Please try again.");
-      console.error("Login error:", err);
-    } finally {
-      setLoading(false);
+    if (result.success) {
+      router.push("/dashboard");
+      return;
     }
+
+    setError(result.message || authError || "Login failed. Please try again.");
   };
 
   const handleChange = (e) => {
@@ -112,19 +93,19 @@ export default function LoginPage() {
             </div>
 
             {/* Error Message */}
-            {error && (
+            {displayError && (
               <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg text-sm">
-                {error}
+                {displayError}
               </div>
             )}
 
             {/* Submit Button */}
             <button
               type="submit"
-              disabled={loading}
+              disabled={status === "loading"}
               className="w-full bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 focus:ring-4 focus:ring-green-300 transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? "Logging in..." : "Login"}
+              {status === "loading" ? "Logging in..." : "Login"}
             </button>
           </form>
 

@@ -435,6 +435,14 @@ import { LayoutWrapper, Header, Sidebar, Button } from "../components";
 - Customize nav items in [Sidebar](rurallite/components/layout/Sidebar.jsx)
 - Update global branding in [Header](rurallite/components/layout/Header.jsx)
 
+## State Management — Context + Hooks ✅
+
+- **Contexts + hooks:** [AuthContext](rurallite/context/AuthContext.jsx#L1-L172), [UIContext](rurallite/context/UIContext.jsx#L1-L64), [useAuth](rurallite/hooks/useAuth.js#L1-L17), [useUI](rurallite/hooks/useUI.js#L1-L7) wired globally in [app/layout.js](rurallite/app/layout.js#L1-L35).
+- **Auth flow:** `login` posts to `/api/auth/login`, persists `authToken` and `user`, and sets the HTTP-only cookie; `logout` clears storage and the cookie; `refreshUser` rehydrates from `/api/auth/me` to keep client and middleware in sync.
+- **UI state:** `theme` and `sidebarOpen` live in UIContext with persistence (`uiTheme`, `uiSidebarOpen`) and a `data-theme` hook so toggles instantly restyle the app; collapsing the sidebar hides [components/layout/Sidebar.jsx](rurallite/components/layout/Sidebar.jsx#L1-L37) without prop drilling.
+- **Try it:** Use the playground on [app/page.js](rurallite/app/page.js#L1-L104) to flip theme/sidebar and inspect auth status; sign in via [app/login/page.jsx](rurallite/app/login/page.jsx#L1-L120) and the dashboard will render with your user from context; logout from the header to see state reset.
+- **Observability:** Watch localStorage keys (`authToken`, `user`, `uiTheme`, `uiSidebarOpen`) and console network calls to `/api/auth/login` and `/api/auth/logout` to confirm state transitions.
+
 Example:
 
 ```bash
