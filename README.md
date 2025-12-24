@@ -830,6 +830,20 @@ Five key deliverables completed in this assignment:
 - [x] Achieved instant page loads, immediate UI updates for create and delete actions, and reduced network requests by approximately 60% with smart auto-refresh intervals and a development Cache Inspector.
 - [x] Implemented reusable form handling and validation using React Hook Form and Zod, including a shared FormInput component, clear schema-based error messages, and improved accessibility with proper labels, inline feedback, and aria-invalid attributes.
 
+## 📝 Day 11 - Feedback UI (Toasts, Modals & Loaders)
+
+To improve user experience and trust, interactive feedback UI elements were added across the application.
+
+### Implemented Features
+- Toast notifications for instant success and error feedback
+- Confirmation modal for destructive actions
+- Loaders for async operations like form submission and deletion
+
+### Trigger Points
+- Login and signup form submissions
+- API success and failure states
+- Delete confirmation actions
+
 ## 🐳 Docker & Docker Compose Setup
 
 ### Overview

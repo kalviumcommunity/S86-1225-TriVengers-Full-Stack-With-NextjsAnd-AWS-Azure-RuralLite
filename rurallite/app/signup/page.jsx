@@ -1,71 +1,60 @@
 "use client";
 
 import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import FormInput from "@/components/FormInput";
-
-// Zod validation schema
-const signupSchema = z.object({
-  name: z.string().min(3, "Name must be at least 3 characters"),
-  email: z.string().email("Invalid email address"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
-});
+import { toast } from "react-hot-toast";
 
 export default function SignupPage() {
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting },
-  } = useForm({
-    resolver: zodResolver(signupSchema),
-  });
+    formState: { isSubmitting },
+  } = useForm();
 
-  const onSubmit = (data) => {
-    console.log("Signup Data:", data);
-    alert(`Welcome, ${data.name}!`);
+  const onSubmit = async (data) => {
+    const toastId = toast.loading("Creating account...");
+
+    try {
+      await new Promise((res) => setTimeout(res, 1500)); // mock API
+      toast.success("Account created successfully!", { id: toastId });
+    } catch (error) {
+      toast.error("Signup failed", { id: toastId });
+    }
   };
 
   return (
-    <main className="p-6 flex justify-center">
-      <form
-        onSubmit={handleSubmit(onSubmit)}
-        className="w-96 bg-gray-50 p-6 border rounded-lg"
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      <input
+        {...register("name")}
+        placeholder="Name"
+        className="border p-2 w-full"
+      />
+
+      <input
+        {...register("email")}
+        placeholder="Email"
+        className="border p-2 w-full"
+      />
+
+      <input
+        {...register("password")}
+        type="password"
+        placeholder="Password"
+        className="border p-2 w-full"
+      />
+
+      <button
+        type="submit"
+        disabled={isSubmitting}
+        className="bg-blue-600 text-white px-4 py-2 rounded"
       >
-        <h1 className="text-2xl font-bold mb-4">
-          Signup Form
-        </h1>
+        Sign Up
+      </button>
 
-        <FormInput
-          label="Name"
-          name="name"
-          register={register}
-          error={errors.name?.message}
-        />
-
-        <FormInput
-          label="Email"
-          name="email"
-          type="email"
-          register={register}
-          error={errors.email?.message}
-        />
-
-        <FormInput
-          label="Password"
-          name="password"
-          type="password"
-          register={register}
-          error={errors.password?.message}
-        />
-
-        <button
-          disabled={isSubmitting}
-          className="bg-blue-600 text-white py-2 w-full rounded hover:bg-blue-700"
-        >
-          {isSubmitting ? "Submitting..." : "Sign Up"}
-        </button>
-      </form>
-    </main>
+      {isSubmitting && (
+        <div role="status" aria-live="polite" className="text-sm text-gray-500">
+          Creating account...
+        </div>
+      )}
+    </form>
   );
 }
