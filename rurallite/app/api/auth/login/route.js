@@ -1,13 +1,9 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
 import prisma from "../../../../lib/prisma";
 import { sendSuccess, sendError } from "../../../../lib/responseHandler";
 import { ERROR_CODES } from "../../../../lib/errorCodes";
-
-// JWT Secret - In production, this should be stored in environment variables
-const JWT_SECRET =
-  process.env.JWT_SECRET || "your-secret-key-change-in-production";
+import { generateTokenPair } from "../../../../lib/jwtUtils";
 
 export async function POST(req) {
   try {
@@ -39,26 +35,20 @@ export async function POST(req) {
       return sendError("Invalid credentials", ERROR_CODES.UNAUTHORIZED, 401);
     }
 
-    // Generate JWT token
-    // Token contains user id, email, and role
-    // Expires in 24 hours
-    const token = jwt.sign(
-      {
-        id: user.id,
-        email: user.email,
-        role: user.role,
-      },
-      JWT_SECRET,
-      { expiresIn: "24h" }
-    );
+    // Generate access and refresh tokens
+    const { accessToken, refreshToken } = generateTokenPair({
+      id: user.id,
+      email: user.email,
+      role: user.role,
+    });
 
-    // Build response and set secure HTTP-only cookie for pages middleware
+    // Build response
     const res = NextResponse.json(
       {
         success: true,
         message: "Login successful",
         data: {
-          token,
+          accessToken,
           user: {
             id: user.id,
             name: user.name,
@@ -71,14 +61,25 @@ export async function POST(req) {
       { status: 200 }
     );
 
-    // Cookie options
+    // Set cookies with security options
     const isProd = process.env.NODE_ENV === "production";
-    res.cookies.set("token", token, {
+
+    // Access token cookie (for page middleware)
+    res.cookies.set("token", accessToken, {
       httpOnly: true,
       secure: isProd,
-      sameSite: "lax",
+      sameSite: "strict",
       path: "/",
-      maxAge: 60 * 60 * 24, // 1 day
+      maxAge: 60 * 15, // 15 minutes
+    });
+
+    // Refresh token cookie (HTTP-only, more secure)
+    res.cookies.set("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: isProd,
+      sameSite: "strict",
+      path: "/",
+      maxAge: 60 * 60 * 24 * 7, // 7 days
     });
 
     return res;

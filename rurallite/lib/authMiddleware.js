@@ -1,11 +1,9 @@
-import jwt from "jsonwebtoken";
 import { sendError } from "./responseHandler";
 import { ERROR_CODES } from "./errorCodes";
-
-const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key-change-in-production";
+import { verifyAccessToken } from "./jwtUtils";
 
 /**
- * Middleware to verify JWT token from request headers
+ * Middleware to verify JWT access token from request headers
  * @param {Request} req - The incoming request object
  * @returns {Object|null} - Decoded user data or null if invalid
  */
@@ -25,8 +23,8 @@ export function verifyToken(req) {
             return null;
         }
 
-        // Verify and decode token
-        const decoded = jwt.verify(token, JWT_SECRET);
+        // Verify and decode access token
+        const decoded = verifyAccessToken(token);
         return decoded;
     } catch (error) {
         // Token is invalid or expired
@@ -36,6 +34,7 @@ export function verifyToken(req) {
 
 /**
  * Higher-order function to protect routes with JWT authentication
+ * Returns 401 if token is missing, invalid, or expired
  * @param {Function} handler - The route handler function
  * @returns {Function} - Protected route handler
  */
@@ -50,12 +49,14 @@ export function withAuth(handler) {
                 401
             );
         }
+            );
+    }
 
-        // Attach user to request for use in handler
-        req.user = user;
+    // Attach user to request for use in handler
+    req.user = user;
 
-        return handler(req, context);
-    };
+    return handler(req, context);
+};
 }
 
 /**
