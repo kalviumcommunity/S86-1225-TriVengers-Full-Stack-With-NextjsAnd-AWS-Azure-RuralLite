@@ -223,7 +223,7 @@ Run tests from the `rurallite` folder:
 
 ```bash
 npm test
-````
+```
 
 Note: On this machine PowerShell blocked running `npm` due to execution policy; run tests locally in a shell that allows npm if you see a similar error.
 
@@ -1188,6 +1188,6 @@ A JSON Web Token consists of three parts: `header.payload.signature`
 - **Defense in Depth**: HTTP-only cookies prevent XSS, SameSite prevents CSRF, short lifespan limits replay attacks, token rotation detects theft
 - **Transparent to Users**: Automatic refresh happens in the background, users never notice token expiry
 
-**Key Takeaway**: Strong authentication is about trust and longevity — secure enough that unauthorized access is nearly impossible, yet convenient enough that legitimate users never notice the security working in the background.
+**Key Takeaway**: Strong authentication is about trust and longevity ï¿½ secure enough that unauthorized access is nearly impossible, yet convenient enough that legitimate users never notice the security working in the background.
 
  **Full Documentation**: See JWT_IMPLEMENTATION.md for comprehensive documentation including flow diagrams, security deep-dive, and testing guide.
