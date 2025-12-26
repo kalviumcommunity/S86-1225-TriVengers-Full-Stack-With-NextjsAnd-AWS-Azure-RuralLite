@@ -223,7 +223,7 @@ Run tests from the `rurallite` folder:
 
 ```bash
 npm test
-````
+```
 
 Note: On this machine PowerShell blocked running `npm` due to execution policy; run tests locally in a shell that allows npm if you see a similar error.
 
@@ -940,3 +940,42 @@ npm run dev
 
 2. Login at `/login` using a seeded user (see Prisma seed). On success, you’re redirected to `/dashboard` and the `token` cookie is set.
 3. Navigate to `/users` and `/users/1` to see protected + dynamic routes in action.
+
+---
+
+## TailwindCSS Responsive & Themed UI
+
+### Tailwind Configuration
+
+- Custom breakpoints in `tailwind.config.js`:
+  - sm: 640px
+  - md: 768px
+  - lg: 1024px
+  - xl: 1280px
+- Custom color palette:
+  - brand.light: #93C5FD
+  - brand.DEFAULT: #3B82F6
+  - brand.dark: #1E40AF
+- Dark mode enabled via `darkMode: 'class'`
+
+### Responsiveness Evidence
+
+See `app/responsive-demo.jsx` for a responsive layout using Tailwind utilities. Example classes:
+- `p-4 md:p-8 lg:p-12`
+- `text-lg md:text-2xl lg:text-3xl`
+- `grid-cols-1 md:grid-cols-2`
+
+#### Screenshots
+<!-- Paste screenshots or GIFs here showing mobile, tablet, desktop, and dark mode -->
+
+### Theme Reflection
+
+- Color contrast was tested for readability in both light and dark themes.
+- Used `dark:` variants for background and text.
+- Theme toggle implemented in `components/ThemeToggle.jsx` with localStorage persistence.
+- Accessibility: Ensured sufficient contrast and tested with DevTools contrast checker.
+- Challenge: Ensuring all custom colors met WCAG contrast guidelines in both themes.
+
+---
+
+_This section documents the responsive and themed UI implementation for the assignment._
