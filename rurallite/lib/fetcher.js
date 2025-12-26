@@ -1,24 +1,12 @@
 /**
- * Fetcher utility for SWR
+ * Fetcher utility for SWR with automatic token refresh
  * Handles API requests with authentication and error handling
  */
 
+import { fetchWithAuth } from './authClient';
+
 export const fetcher = async (url) => {
-    // Get auth token from localStorage if available
-    const token = typeof window !== 'undefined' ? localStorage.getItem('authToken') : null;
-
-    const headers = {
-        'Content-Type': 'application/json',
-    };
-
-    if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-    }
-
-    const res = await fetch(url, {
-        headers,
-        credentials: 'include', // Include cookies for authentication
-    });
+    const res = await fetchWithAuth(url);
 
     if (!res.ok) {
         const error = new Error('Failed to fetch data');

@@ -1095,39 +1095,99 @@ npm run dev
 
 ---
 
-## TailwindCSS Responsive & Themed UI
+## Secure JWT & Session Management 
 
-### Tailwind Configuration
+### Overview
 
-- Custom breakpoints in `tailwind.config.js`:
-  - sm: 640px
-  - md: 768px
-  - lg: 1024px
-  - xl: 1280px
-- Custom color palette:
-  - brand.light: #93C5FD
-  - brand.DEFAULT: #3B82F6
-  - brand.dark: #1E40AF
-- Dark mode enabled via `darkMode: 'class'`
+Implemented comprehensive JWT-based authentication with **access and refresh tokens**, automatic token rotation, and protection against common security threats (XSS, CSRF, token replay attacks).
 
-### Responsiveness Evidence
+### JWT Structure
 
-See `app/responsive-demo.jsx` for a responsive layout using Tailwind utilities. Example classes:
-- `p-4 md:p-8 lg:p-12`
-- `text-lg md:text-2xl lg:text-3xl`
-- `grid-cols-1 md:grid-cols-2`
+A JSON Web Token consists of three parts: `header.payload.signature`
 
-#### Screenshots
-<!-- Paste screenshots or GIFs here showing mobile, tablet, desktop, and dark mode -->
+**Example decoded token:**
+```json
+{
+  "header": { "alg": "HS256", "typ": "JWT" },
+  "payload": {
+    "id": "user-123",
+    "email": "user@example.com",
+    "role": "student",
+    "type": "access",
+    "exp": 1735200900
+  }
+}
+```
 
-### Theme Reflection
+### Two-Token System
 
-- Color contrast was tested for readability in both light and dark themes.
-- Used `dark:` variants for background and text.
-- Theme toggle implemented in `components/ThemeToggle.jsx` with localStorage persistence.
-- Accessibility: Ensured sufficient contrast and tested with DevTools contrast checker.
-- Challenge: Ensuring all custom colors met WCAG contrast guidelines in both themes.
+| Token Type | Purpose | Lifespan | Storage |
+|------------|---------|----------|---------|
+| **Access Token** | API authentication | 15 minutes | HTTP-only cookie + localStorage |
+| **Refresh Token** | Token renewal | 7 days | HTTP-only cookie ONLY |
 
----
+**Why two tokens?**
+- **Security**: Short-lived access tokens limit damage from theft
+- **UX**: Long-lived refresh tokens avoid frequent logins
+- **Rotation**: New token pair on each refresh prevents replay attacks
 
-_This section documents the responsive and themed UI implementation for the assignment._
+### Authentication Flow
+
+**1. Login**  Verify credentials  Generate token pair  Set secure cookies
+**2. API Request**  Verify access token  Return data
+**3. Token Expired**  Auto-refresh with refresh token  Retry with new token
+**4. Logout**  Clear both cookies  Invalidate session
+
+### Token Storage & Security
+
+**HTTP-only Cookies** (Primary):
+```javascript
+{
+  httpOnly: true,      // Inaccessible to JavaScript (XSS protection)
+  secure: true,        // HTTPS only in production
+  sameSite: "strict",  // CSRF protection
+  maxAge: 900          // 15 minutes for access token
+}
+```
+
+**Security Measures:**
+-  **XSS Protection**: HTTP-only cookies prevent JavaScript access
+-  **CSRF Protection**: SameSite=strict blocks cross-origin requests
+-  **Token Replay**: Short lifespan (15min) + token rotation
+-  **MITM Protection**: HTTPS in production (secure flag)
+
+### Implementation Files
+
+**Server-Side:**
+- lib/jwtUtils.js - Token generation and verification
+- app/api/auth/login/route.js - Login with dual tokens
+- app/api/auth/refresh/route.js - Token refresh with rotation
+- app/api/auth/logout/route.js - Clear both cookies
+- lib/authMiddleware.js - Protect API routes
+
+**Client-Side:**
+- lib/authClient.js - Auto-refresh on 401 errors
+- lib/fetcher.js - SWR fetcher with auth
+
+### Security Checklist
+
+- [] Access tokens expire in 15 minutes
+- [] Refresh tokens expire in 7 days
+- [] HTTP-only cookies for token storage
+- [] SameSite=strict for CSRF protection
+- [] Secure flag enabled in production
+- [] Token rotation on every refresh
+- [] Different secrets for access/refresh
+- [] Automatic client-side token refresh
+- [] Both tokens cleared on logout
+
+### Reflection
+
+**Why This Approach:**
+- **Balance of Security & UX**: Users stay logged in for 7 days (refresh token), but access tokens expire every 15 minutes (limits exposure)
+- **Defense in Depth**: HTTP-only cookies prevent XSS, SameSite prevents CSRF, short lifespan limits replay attacks, token rotation detects theft
+- **Transparent to Users**: Automatic refresh happens in the background, users never notice token expiry
+
+**Key Takeaway**: Strong authentication is about trust and longevity � secure enough that unauthorized access is nearly impossible, yet convenient enough that legitimate users never notice the security working in the background.
+
+ **Full Documentation**: See JWT_IMPLEMENTATION.md for comprehensive documentation including flow diagrams, security deep-dive, and testing guide.
