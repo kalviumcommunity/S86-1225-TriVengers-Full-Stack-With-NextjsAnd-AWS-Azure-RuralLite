@@ -891,6 +891,158 @@ console.log("Cached keys:", Array.from(cache.keys()));
 
 ---
 
+## Error & Loading States ✅
+
+### Overview
+
+Implemented comprehensive loading skeletons and error boundaries across all routes to ensure users never see blank screens or confusing errors. Every page has graceful fallback UI that maintains user trust during loading and error scenarios.
+
+### Loading Skeletons
+
+**Implementation:** Each route has a `loading.js` file that displays a skeleton UI while data is being fetched.
+
+**Benefits:**
+- ✅ Users see structure of what's loading (better than blank screens)
+- ✅ Smooth `animate-pulse` effect using Tailwind CSS
+- ✅ Matches actual content structure for predictable UX
+- ✅ Automatic loading states (no manual useState needed)
+
+**Routes with Loading States:**
+
+| Route | Loading File | Features |
+|-------|-------------|----------|
+| `/users` | [app/users/loading.js](app/users/loading.js) | Form + user list skeleton |
+| `/lessons` | [app/lessons/loading.js](app/lessons/loading.js) | Form + lesson cards skeleton |
+| `/notes` | [app/notes/loading.js](app/notes/loading.js) | Form + note cards skeleton |
+| `/quizzes` | [app/quizzes/loading.js](app/quizzes/loading.js) | Quiz list skeleton |
+| `/dashboard` | [app/dashboard/loading.js](app/dashboard/loading.js) | Stats grid + activity skeleton |
+| Global | [app/loading.js](app/loading.js) | Spinner fallback |
+
+**Example - Users Loading Skeleton:**
+```javascript
+// app/users/loading.js
+export default function Loading() {
+  return (
+    <div className="animate-pulse space-y-6">
+      {/* Header skeleton */}
+      <div className="h-8 bg-gray-200 rounded w-1/4"></div>
+      
+      {/* User list skeleton */}
+      {[1, 2, 3, 4, 5].map((i) => (
+        <div key={i} className="bg-white border rounded-lg px-4 py-3">
+          <div className="h-5 bg-gray-200 rounded w-1/4"></div>
+        </div>
+      ))}
+    </div>
+  );
+}
+```
+
+### Error Boundaries
+
+**Implementation:** Each route has an `error.js` file that catches errors and provides retry functionality.
+
+**Benefits:**
+- ✅ Graceful error handling (no app crashes)
+- ✅ User-friendly error messages
+- ✅ Retry functionality on all error pages
+- ✅ Context-specific error messages per route
+- ✅ Automatic error logging for debugging
+
+**Routes with Error Boundaries:**
+
+| Route | Error File | Features |
+|-------|-----------|----------|
+| `/users` | [app/users/error.js](app/users/error.js) | User-friendly message + retry + go to dashboard |
+| `/lessons` | [app/lessons/error.js](app/lessons/error.js) | Lesson context error + retry |
+| `/notes` | [app/notes/error.js](app/notes/error.js) | Notes context error + retry |
+| `/quizzes` | [app/quizzes/error.js](app/quizzes/error.js) | Quiz error + retry + refresh |
+| `/dashboard` | [app/dashboard/error.js](app/dashboard/error.js) | Dashboard error + go home |
+| Global | [app/error.js](app/error.js) | Catch-all error boundary |
+
+**Example - Users Error Boundary:**
+```javascript
+// app/users/error.js
+"use client";
+
+export default function Error({ error, reset }) {
+  return (
+    <div className="flex flex-col items-center justify-center">
+      <h2 className="text-2xl font-bold text-red-600">
+        Oops! Something went wrong
+      </h2>
+      <p className="text-gray-600">{error.message}</p>
+      <button onClick={() => reset()} className="bg-red-600 text-white">
+        Try Again
+      </button>
+    </div>
+  );
+}
+```
+
+### Testing Error & Loading States
+
+See [TESTING_ERROR_LOADING_STATES.md](TESTING_ERROR_LOADING_STATES.md) for complete testing guide.
+
+**Quick Testing Methods:**
+
+1. **Network Throttling** (Chrome DevTools):
+   - Open DevTools → Network tab
+   - Change to "Slow 3G" or "Fast 3G"
+   - Navigate to any page to see loading skeleton
+
+2. **localStorage Test Mode**:
+   ```javascript
+   // In browser console
+   localStorage.setItem('testMode', 'true');
+   localStorage.setItem('testDelay', '3000'); // 3 seconds
+   location.reload();
+   ```
+
+3. **Force API Errors**:
+   - Stop backend server
+   - Use invalid API endpoint
+   - See error boundary in action
+
+### Why This Improves UX
+
+**Loading States:**
+- Users know the app is working (not frozen)
+- Visual structure prevents layout shift
+- Reduces perceived loading time
+- Builds trust through transparency
+
+**Error States:**
+- Users understand what went wrong
+- Clear recovery path (retry button)
+- Prevents confusion and frustration
+- Maintains professionalism even during failures
+
+### Test Helper Utilities
+
+Created [lib/testHelpers.js](lib/testHelpers.js) for simulating errors and delays:
+
+```javascript
+import { simulateDelay, simulateError } from '@/lib/testHelpers';
+
+// In any component
+await simulateDelay(3000); // 3 second delay
+simulateError(0.5); // 50% chance of error
+```
+
+### Reflection
+
+Robust apps don't just work when everything's perfect — they guide users calmly when things go wrong. Implementing loading skeletons and error boundaries:
+
+- **Increases user trust**: Clear feedback at every stage
+- **Reduces support tickets**: Users understand what's happening
+- **Improves perceived performance**: Skeletons make waits feel shorter
+- **Builds credibility**: Professional error handling = professional product
+
+**Key Learning**: A thoughtful loading and error strategy is as important as the feature itself. Users remember how your app handles failures more than how it handles success.
+
+---
+
 ## Routing (App Router) — Public, Protected, Dynamic ✅
 
 
