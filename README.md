@@ -564,6 +564,305 @@ For complete file upload documentation, architecture details, security measures,
 
 ---
 
+## 🔒 HTTPS Enforcement & Secure Headers
+
+RuralLite implements comprehensive security headers to protect against common web vulnerabilities. These headers act as the first line of defense against attacks like man-in-the-middle (MITM), cross-site scripting (XSS), clickjacking, and unauthorized API access.
+
+### Security Headers Overview
+
+| Header | Purpose | Attack Prevention |
+|--------|---------|------------------|
+| **HSTS** (HTTP Strict Transport Security) | Forces browsers to always use HTTPS | Man-in-the-middle (MITM) attacks, protocol downgrade |
+| **CSP** (Content Security Policy) | Restricts allowed sources for scripts, styles, and content | Cross-Site Scripting (XSS), data exfiltration |
+| **CORS** (Cross-Origin Resource Sharing) | Controls which domains can access your API | Unauthorized API access from untrusted domains |
+| **X-Frame-Options** | Prevents page from being embedded in iframes | Clickjacking attacks |
+| **X-Content-Type-Options** | Prevents MIME type sniffing | Drive-by downloads, content type attacks |
+| **Referrer-Policy** | Controls referrer information sent with requests | Information leakage |
+
+### Implementation Details
+
+#### 1. HSTS (HTTP Strict Transport Security)
+
+Configured in [rurallite/next.config.mjs](rurallite/next.config.mjs):
+
+```javascript
+{
+  key: 'Strict-Transport-Security',
+  value: 'max-age=63072000; includeSubDomains; preload'
+}
+```
+
+**Configuration breakdown:**
+- `max-age=63072000` → 2 years validity (730 days)
+- `includeSubDomains` → Applies to all subdomains
+- `preload` → Eligible for HSTS preload list in browsers
+
+**What it does:** Once a user visits your site over HTTPS, their browser will automatically use HTTPS for all future requests for 2 years, even if they type `http://` in the address bar.
+
+#### 2. Content Security Policy (CSP)
+
+Configured in [rurallite/next.config.mjs](rurallite/next.config.mjs):
+
+```javascript
+{
+  key: 'Content-Security-Policy',
+  value: "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' https://apis.google.com; ..."
+}
+```
+
+**Key directives:**
+- `default-src 'self'` → Only load resources from same origin by default
+- `script-src` → Defines allowed JavaScript sources (self, Google APIs)
+- `style-src` → Defines allowed CSS sources (self, inline styles, Google Fonts)
+- `img-src 'self' data: https: blob:` → Allow images from self, data URIs, HTTPS, and blobs
+- `connect-src` → Restricts AJAX, WebSocket, and fetch() destinations
+- `frame-ancestors 'none'` → Prevents embedding in iframes (alternative to X-Frame-Options)
+- `upgrade-insecure-requests` → Automatically upgrades HTTP requests to HTTPS
+
+**⚠️ Important:** Customize CSP based on your actual third-party integrations (analytics, fonts, CDNs). A strict CSP can break functionality if not configured properly.
+
+#### 3. CORS (Cross-Origin Resource Sharing)
+
+Configured in [rurallite/lib/corsConfig.js](rurallite/lib/corsConfig.js) and applied via [rurallite/middleware.js](rurallite/middleware.js):
+
+```javascript
+// Allowed origins (customize for your deployment)
+const ALLOWED_ORIGINS = [
+  'http://localhost:3000',
+  'https://rurallite.vercel.app',
+  'https://your-production-domain.com'
+];
+```
+
+**CORS Headers:**
+- `Access-Control-Allow-Origin` → Specifies exact allowed origin (never use `*` in production)
+- `Access-Control-Allow-Methods` → `GET, POST, PUT, PATCH, DELETE, OPTIONS`
+- `Access-Control-Allow-Headers` → `Content-Type, Authorization, X-Requested-With`
+- `Access-Control-Allow-Credentials` → `true` (allows cookies/auth headers)
+- `Access-Control-Max-Age` → `86400` (24 hours cache for preflight requests)
+
+**How it works:**
+1. Browser sends preflight OPTIONS request with `Origin` header
+2. Middleware checks if origin is in allowed list
+3. If allowed, responds with CORS headers; if not, request is blocked
+4. Actual request proceeds only if preflight succeeds
+
+**Development vs Production:**
+- **Development:** All localhost origins are automatically allowed
+- **Production:** Only explicitly listed domains in `ALLOWED_ORIGINS` are allowed
+
+#### 4. Additional Security Headers
+
+**X-Frame-Options:**
+```javascript
+{ key: 'X-Frame-Options', value: 'DENY' }
+```
+Prevents the page from being embedded in any iframe, protecting against clickjacking.
+
+**X-Content-Type-Options:**
+```javascript
+{ key: 'X-Content-Type-Options', value: 'nosniff' }
+```
+Forces browsers to respect declared content types, preventing MIME-type sniffing attacks.
+
+**Referrer-Policy:**
+```javascript
+{ key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' }
+```
+Sends full URL for same-origin requests, only origin for cross-origin requests.
+
+**Permissions-Policy:**
+```javascript
+{ key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' }
+```
+Disables browser features like camera, microphone, and geolocation for added privacy.
+
+### Testing & Verification
+
+#### Local Testing (Chrome DevTools)
+
+1. Open your app in Chrome
+2. Open DevTools → **Network** tab
+3. Refresh the page and select the main document request
+4. Click **Headers** → **Response Headers**
+5. Verify presence of:
+   - `Strict-Transport-Security`
+   - `Content-Security-Policy`
+   - `X-Frame-Options`
+   - `X-Content-Type-Options`
+   - `Access-Control-Allow-Origin` (on API requests)
+
+#### Online Security Scanners
+
+Test your deployed application with these tools:
+
+**[Security Headers](https://securityheaders.com)**
+```
+https://securityheaders.com/?q=https://your-domain.com
+```
+Provides a grade (A+ to F) and detailed analysis of all security headers.
+
+**[Mozilla Observatory](https://observatory.mozilla.org)**
+```
+https://observatory.mozilla.org/analyze/your-domain.com
+```
+Comprehensive security scan including headers, TLS configuration, and best practices.
+
+**[SSL Labs](https://www.ssllabs.com/ssltest/)**
+```
+https://www.ssllabs.com/ssltest/analyze.html?d=your-domain.com
+```
+Tests HTTPS/TLS configuration and certificate validity.
+
+#### PowerShell Testing Script
+
+Test headers locally:
+
+```powershell
+# Test security headers
+$response = Invoke-WebRequest -Uri "http://localhost:3000" -UseBasicParsing
+$response.Headers | Format-Table
+
+# Test API CORS
+$apiResponse = Invoke-WebRequest -Uri "http://localhost:3000/api/testdb" `
+  -Method GET `
+  -Headers @{"Origin"="http://localhost:3000"} `
+  -UseBasicParsing
+
+Write-Host "CORS Headers:" -ForegroundColor Green
+$apiResponse.Headers.'Access-Control-Allow-Origin'
+$apiResponse.Headers.'Access-Control-Allow-Methods'
+```
+
+### Configuration Checklist
+
+- [x] **HSTS** configured with 2-year max-age and preload
+- [x] **CSP** configured with trusted sources (customize for your integrations)
+- [x] **CORS** configured with explicit allowed origins (no wildcards)
+- [x] **X-Frame-Options** set to DENY
+- [x] **X-Content-Type-Options** set to nosniff
+- [x] **Referrer-Policy** configured for privacy
+- [x] **Middleware** applies CORS to all API routes
+- [x] **Preflight OPTIONS** requests handled correctly
+- [ ] **Production origins** updated in `corsConfig.js`
+- [ ] **CSP domains** customized for your CDNs/analytics
+- [ ] **Security scan** performed on production deployment
+
+### Customization for Deployment
+
+Before deploying to production:
+
+1. **Update allowed origins** in [rurallite/lib/corsConfig.js](rurallite/lib/corsConfig.js):
+   ```javascript
+   const ALLOWED_ORIGINS = [
+     'https://your-actual-domain.com',
+     'https://www.your-actual-domain.com',
+     'https://rurallite.vercel.app'  // Update with your Vercel domain
+   ];
+   ```
+
+2. **Customize CSP** in [rurallite/next.config.mjs](rurallite/next.config.mjs) based on your integrations:
+   - Add your CDN domains to `img-src`
+   - Add analytics domains (Google Analytics, Mixpanel, etc.) to `script-src` and `connect-src`
+   - Add font CDNs to `font-src`
+   - Remove `'unsafe-inline'` and `'unsafe-eval'` if possible for stricter security
+
+3. **Test thoroughly** after CSP changes:
+   - Check browser console for CSP violations
+   - Test all features (login, file upload, API calls)
+   - Verify third-party integrations work
+
+### Security Best Practices
+
+✅ **Never use `Access-Control-Allow-Origin: *` in production** → Always specify exact domains  
+✅ **Test CSP changes thoroughly** → A strict CSP can break functionality  
+✅ **Use HTTPS in production** → HSTS only works over HTTPS  
+✅ **Monitor CSP violations** → Use CSP reporting to catch issues  
+✅ **Keep headers updated** → Security best practices evolve  
+✅ **Review third-party scripts** → Only load from trusted sources  
+✅ **Document all CORS origins** → Keep track of why each domain is allowed
+
+### Impact on Third-Party Integrations
+
+**CSP may affect:**
+- ❌ Inline scripts and styles (use `nonce` or `hash` instead of `'unsafe-inline'`)
+- ❌ External analytics (Google Analytics, Mixpanel) - must be whitelisted
+- ❌ External fonts (Google Fonts, Font Awesome) - must be whitelisted
+- ❌ CDN resources - must be whitelisted
+
+**CORS may affect:**
+- ❌ API calls from external domains
+- ❌ Mobile app API access - whitelist app domains
+- ❌ Third-party webhooks - may need separate endpoint without CORS
+
+### Troubleshooting
+
+**Issue: CSP blocking scripts**
+- Check browser console for CSP violation errors
+- Add the blocked domain to appropriate CSP directive
+- Test with relaxed CSP first, then tighten gradually
+
+**Issue: CORS errors in API calls**
+- Verify origin is in `ALLOWED_ORIGINS`
+- Check if preflight OPTIONS request is being handled
+- Ensure `Access-Control-Allow-Credentials: true` if sending cookies
+
+**Issue: Resources not loading over HTTPS**
+- Check for mixed content warnings in console
+- Use `upgrade-insecure-requests` in CSP
+- Ensure all resources use HTTPS URLs
+
+### Screenshot Evidence
+
+After testing, document your security implementation:
+
+1. **Browser DevTools Headers Screenshot**
+   - Save to `screenshots/security-headers.png`
+   - Show Response Headers with all security headers visible
+
+2. **Security Scan Results**
+   - Run scan on [securityheaders.com](https://securityheaders.com)
+   - Save result to `screenshots/security-scan.png`
+   - Target: A or A+ grade
+
+3. **CORS Test Screenshot**
+   - Show successful API call with CORS headers
+   - Save to `screenshots/cors-headers.png`
+
+### Reflection
+
+**Why HTTPS enforcement matters:**
+- Protects user credentials and sensitive data in transit
+- Prevents session hijacking and man-in-the-middle attacks
+- Required for modern browser features (Service Workers, PWA)
+- Builds user trust (green padlock in address bar)
+
+**How security headers improve our app:**
+- **Multiple layers of defense** → Security headers work together
+- **Minimal performance impact** → Headers are lightweight
+- **Proactive protection** → Prevents attacks before they happen
+- **Standards compliance** → Follows OWASP recommendations
+
+**Balancing security and flexibility:**
+- Strict CSP requires careful configuration for third-party services
+- CORS restrictions may complicate API integrations
+- Some legacy browsers may not support all headers
+- Must document all exceptions and their reasons
+
+**For rural/offline context:**
+- Service Worker requires HTTPS to function
+- Offline-first PWA architecture depends on secure contexts
+- Local caching is more secure with CSP protecting cached content
+- Background sync requires secure connection for data uploads
+
+### Complete Documentation
+
+For detailed implementation guide, testing procedures, troubleshooting, and production deployment checklist, see:
+
+📚 **[Complete Security Headers Documentation](./SECURITY_HEADERS.md)**
+
+---
+
 ## 🔀 Git Workflow & Collaboration
 
 ### Branch Naming Conventions
