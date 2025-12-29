@@ -1,3 +1,62 @@
+## Role-Based Access Control (RBAC)
+
+### Roles & Permissions Table
+
+| Role   | Permissions                  |
+|--------|------------------------------|
+| admin  | create, read, update, delete |
+| editor | read, update                 |
+| viewer | read                         |
+
+Roles are assigned to users and stored in their JWT payload. Permissions are enforced in both API routes and UI components.
+
+### Policy Evaluation Logic
+
+**API Example:**
+
+```js
+import { roles } from "@/config/roles";
+import { checkRole } from "@/lib/authMiddleware";
+
+// In an API route
+const allowed = checkRole(user, ["admin", "editor"]);
+if (!allowed) return res.status(403).json({ error: "Access denied" });
+```
+
+**UI Example:**
+
+```jsx
+{['admin', 'editor'].includes(user?.role) && <button>Edit</button>}
+{user?.role === 'admin' && <button>Delete</button>}
+```
+
+### Logging & Auditing
+
+Every allow/deny decision is logged for auditing:
+
+```js
+console.log(`[RBAC] ${user?.role || 'unknown'} attempted to DELETE lesson: ${allowed ? 'ALLOWED' : 'DENIED'}`);
+```
+
+UI logs RBAC decisions as well:
+
+```js
+console.log(`[RBAC-UI] ${user?.role || 'unknown'} access to Users link: ALLOWED`);
+```
+
+### Test Results / Evidence
+
+- Users with role 'viewer' cannot see edit/delete buttons or access protected API endpoints (403 error).
+- Admin/editor roles can access additional UI and API features.
+- All allow/deny actions are logged in the console for traceability.
+
+### Reflection
+
+- **Scalability:** The RBAC model is easy to extend with new roles or permissions. Centralized mapping keeps logic maintainable.
+- **Auditing:** Logging every access decision supports security audits and debugging.
+- **Adaptability:** For more complex needs, this can be extended to policy-based access (PBAC) or attribute-based access (ABAC) with minimal refactor.
+
+RBAC is foundational for secure, scalable systems—preventing privilege abuse and supporting audit trails as the product grows.
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
 ## Getting Started

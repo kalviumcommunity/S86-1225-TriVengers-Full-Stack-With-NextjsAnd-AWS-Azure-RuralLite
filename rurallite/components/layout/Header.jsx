@@ -27,7 +27,14 @@ export default function Header() {
       <nav className="hidden md:flex gap-4 items-center">
         <Link href="/">Home</Link>
         <Link href="/dashboard">Dashboard</Link>
-        <Link href="/users">Users</Link>
+        {/* Only show Users link for admin/editor */}
+        {(() => {
+          const allowed = ['admin', 'editor'].includes(user?.role);
+          if (typeof window !== 'undefined') {
+            console.log(`[RBAC-UI] ${user?.role || 'unknown'} access to Users link: ${allowed ? 'ALLOWED' : 'DENIED'}`);
+          }
+          return allowed ? <Link href="/users">Users</Link> : null;
+        })()}
       </nav>
       <button
         type="button"
@@ -39,6 +46,9 @@ export default function Header() {
       {isAuthenticated ? (
         <div className="flex items-center gap-2">
           <span className="text-sm">{user?.name ?? "Logged in"}</span>
+          {user?.role && (
+            <span className="text-xs bg-blue-800 text-white px-2 py-1 rounded ml-2">{user.role}</span>
+          )}
           <button
             type="button"
             onClick={handleLogout}
