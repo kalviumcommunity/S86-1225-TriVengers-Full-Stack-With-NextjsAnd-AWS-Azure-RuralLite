@@ -748,6 +748,21 @@ $apiResponse.Headers.'Access-Control-Allow-Methods'
 - [ ] **CSP domains** customized for your CDNs/analytics
 - [ ] **Security scan** performed on production deployment
 
+---
+
+## Cloud Database Configuration (RDS / Azure SQL)
+
+- Provisioned a managed PostgreSQL instance (AWS RDS/Azure SQL) for the app.
+- Configured secure network access (IP allowlisting for development).
+- Connected the Next.js app to the cloud database using the DATABASE_URL in `.env.local`.
+- Verified the connection using the `/api/testdb` endpoint (returns table counts if successful).
+- Enabled automated backups on the cloud database.
+- Documented the process and best practices for production (private endpoints, backups, scaling).
+
+See the `/rurallite/app/api/testdb/route.js` and `/rurallite/lib/prisma.js` for implementation details.
+
+
+
 ### Customization for Deployment
 
 Before deploying to production:
