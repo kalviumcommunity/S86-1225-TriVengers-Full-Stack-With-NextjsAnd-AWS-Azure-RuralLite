@@ -761,6 +761,11 @@ $apiResponse.Headers.'Access-Control-Allow-Methods'
 
 See the `/rurallite/app/api/testdb/route.js` and `/rurallite/lib/prisma.js` for implementation details.
 
+---
+
+## ✅ Secure File Uploads with AWS S3
+
+This project implements secure, production-ready file uploads using AWS S3. All uploads use pre-signed URLs, strict file type and size validation (client and server), private ACL, and server-side encryption. Credentials are never exposed, and all configuration is managed via environment variables. The upload flow is robust, user-friendly, and follows industry best practices for cloud object storage.
 
 
 ### Customization for Deployment

@@ -16,6 +16,28 @@ export default function FileUploader({ userId = null }) {
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
     if (selectedFile) {
+      // Client-side validation for best practices
+      const allowedTypes = [
+        "image/jpeg",
+        "image/png",
+        "image/gif",
+        "image/webp",
+        "application/pdf",
+        "application/msword",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "text/plain",
+      ];
+      const maxFileSize = 10 * 1024 * 1024;
+      if (!allowedTypes.includes(selectedFile.type)) {
+        setUploadStatus(`❌ File type not allowed: ${selectedFile.type}`);
+        setFile(null);
+        return;
+      }
+      if (selectedFile.size > maxFileSize) {
+        setUploadStatus(`❌ File size exceeds limit (${maxFileSize / (1024 * 1024)}MB)`);
+        setFile(null);
+        return;
+      }
       setFile(selectedFile);
       setUploadStatus("");
     }
@@ -142,8 +164,8 @@ export default function FileUploader({ userId = null }) {
 
       {uploadStatus && (
         <div className={`mt-4 p-3 rounded-md ${uploadStatus.includes("✅") ? "bg-green-50 text-green-800" :
-            uploadStatus.includes("❌") ? "bg-red-50 text-red-800" :
-              "bg-blue-50 text-blue-800"
+          uploadStatus.includes("❌") ? "bg-red-50 text-red-800" :
+            "bg-blue-50 text-blue-800"
           }`}>
           {uploadStatus}
         </div>
