@@ -1481,6 +1481,82 @@ The deployment guide covers:
 - Security best practices
 - Troubleshooting common issues
 
+---
+
+## 🌐 Domain & SSL Setup
+
+Secure your production deployment with custom domain and SSL certificates:
+
+### Quick Setup
+
+#### AWS Route 53 & Certificate Manager
+```bash
+# Automated setup script
+./setup-domain-aws.ps1 -DomainName "yourdomain.com"
+```
+
+#### Azure DNS & App Service Certificates  
+```bash
+# Azure domain setup
+./setup-domain-azure.ps1 -DomainName "yourdomain.com"
+```
+
+### Security Features
+
+✅ **Automatic HTTPS redirects** from HTTP traffic  
+✅ **SSL/TLS encryption** with industry-standard certificates  
+✅ **Security headers** (HSTS, CSP, X-Frame-Options)  
+✅ **DNS management** with cloud-native services  
+✅ **Certificate auto-renewal** to prevent expiration  
+
+### Domain & SSL Features
+
+| Feature | AWS | Azure |
+|---------|-----|--------|
+| **DNS Management** | Route 53 | Azure DNS |
+| **SSL Certificates** | ACM (Auto-renewing) | App Service Managed |
+| **CDN Integration** | CloudFront Ready | Azure CDN Ready |
+| **Validation** | DNS/Email | Domain Verification |
+
+### 📋 Domain Setup Process
+
+1. **Configure DNS**: Point your domain to cloud infrastructure
+2. **Request SSL Certificate**: Automated certificate provisioning  
+3. **Domain Validation**: Verify ownership via DNS records
+4. **HTTPS Enforcement**: Redirect all traffic to secure connections
+5. **Security Headers**: Implement modern web security standards
+
+### 📚 Detailed Domain & SSL Guide
+
+For complete domain and SSL configuration instructions:
+
+👉 **[View Domain & SSL Setup Guide](./DOMAIN-SSL-SETUP.md)**
+
+The guide includes:
+- Step-by-step DNS configuration
+- SSL certificate provisioning and binding
+- Security headers and HTTPS enforcement
+- Domain validation and testing procedures
+- Troubleshooting common DNS/SSL issues
+
+### Validation Tools
+
+```bash
+# Test your domain and SSL setup
+./validate-domain-ssl.ps1 -DomainName "yourdomain.com"
+```
+
+The validation script checks:
+- DNS resolution and propagation
+- HTTP to HTTPS redirects
+- SSL certificate validity and security
+- Security headers implementation
+- Performance and health endpoints
+
+---
+- Security best practices
+- Troubleshooting common issues
+
 ### Environment Configuration
 
 Production deployments require proper environment configuration:
