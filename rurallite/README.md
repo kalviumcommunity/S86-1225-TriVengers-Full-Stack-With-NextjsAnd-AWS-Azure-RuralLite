@@ -73,11 +73,11 @@ pnpm dev
 bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open http://localhost:3000 with your browser to see the result.
 
 You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+This project uses `next/font` to automatically optimize and load Geist.
 
 ## API Route Structure & Naming
 
@@ -147,7 +147,7 @@ All API endpoints return a consistent response envelope to simplify client-side 
 
 Envelope shape:
 
-<!-- ```json
+```json
 {
   "success": boolean,
   "message": string,
@@ -156,7 +156,7 @@ Envelope shape:
   "meta"?: object,
   "timestamp": "2025-10-30T10:00:00Z"
 }
-``` -->
+```
 
 Examples:
 
@@ -227,10 +227,11 @@ curl -s http://localhost:3000/api/users
 
 Production:
 
-````bash
+```bash
 NODE_ENV=production npm run dev
 curl -s http://localhost:3000/api/users
 # => { "success": false, "message": "Something went wrong. Please try again later." }
+```
 
 Example logs (console output):
 
@@ -246,7 +247,7 @@ Development (full detail):
   },
   "timestamp": "2025-10-29T16:45:00Z"
 }
-````
+```
 
 Production (stack redacted):
 
@@ -262,9 +263,82 @@ Production (stack redacted):
 }
 ```
 
-````
-
 This approach makes logs easier to parse, hides sensitive stack traces from users, and keeps API responses predictable for clients.
+
+---
+
+### Logging & Monitoring (cloud-ready) ✅
+
+- Structured logs: `rurallite/lib/logger.js` emits JSON with `timestamp`, `level`, `message`, `requestId`, `endpoint`, `method`, `context`, and `meta` when present. `rurallite/middleware.js` injects an `x-request-id` header for every request so logs, responses, and cloud queries can be correlated.
+- Per-request context: `rurallite/lib/requestContext.js` builds correlation metadata for routes.
+
+```js
+import { getRequestContext } from "@/lib/requestContext";
+import { logger } from "@/lib/logger";
+import { handleError } from "@/lib/errorHandler";
+
+export async function GET(req) {
+  const ctx = getRequestContext(req, "GET /api/users");
+  try {
+    logger.info("users:list", ctx.withMeta({ stage: "start" }));
+    return sendSuccess(...);
+  } catch (err) {
+    return handleError(err, "GET /api/users", ctx.withMeta());
+  }
+}
+```
+
+Sample log (scrubbed):
+
+```json
+{
+  "level": "info",
+  "message": "users:list cache hit",
+  "timestamp": "2026-01-02T10:00:00Z",
+  "requestId": "4c7c7f8e-21c2-4f03-b1b6-02f90d6c5e9a",
+  "method": "GET",
+  "endpoint": "/api/users",
+  "context": "GET /api/users",
+  "meta": { "cacheKey": "users:list:p1:l10" }
+}
+```
+
+#### AWS CloudWatch quick setup
+
+- ECS/EC2: set the `awslogs` driver with a group like `/ecs/rurallite` and stream prefix `api`. Ensure the task role has `logs:CreateLogGroup/Stream` and `logs:PutLogEvents`.
+- Metric filters (Log Insights):
+  - Errors: `{ $.level = "error" }`
+  - Slow requests (if you log `durationMs`): `{ $.level = "warn" && $.meta.durationMs >= 2000 }`
+- Dashboards/alarms:
+  - Errors > 10 in 5m → alert (email/Slack webhook)
+  - p90 latency > 2s (custom metric/EMF) → alert
+  - CPU > 80% (service metric) → alert
+- Retention: set 14 days on `/ecs/rurallite`; optionally ship long-term archives to S3.
+
+#### Azure Monitor / Application Insights quick setup
+
+- App Service: Monitoring → Diagnostic settings → stream console logs to a Log Analytics workspace.
+- Queries (Kusto):
+
+```kusto
+AppServiceConsoleLogs
+| where Level == "Error"
+| summarize count() by bin(TimeGenerated, 5m)
+
+AppServiceConsoleLogs
+| where Message has "users:list"
+| summarize p90(DurationMs) by bin(TimeGenerated, 5m)
+```
+
+- Alerts: errors > 10 in 5m; p90 latency > 2s; CPU > 80%.
+- Retention: set 14 days; export to Blob Storage for 90+ day audit if required.
+
+#### Ops checklist
+
+- Correlation: every response and log carries `x-request-id`/`requestId`.
+- Visibility: logs reach CloudWatch/Azure within a minute; test with a single request.
+- Resilience: intentionally trigger a 500 and verify the alarm and dashboard spike.
+- Compliance: retention 14d for operational logs; archive 90d+ for audit.
 
 ---
 
@@ -287,6 +361,75 @@ npm test
 Note: On this machine PowerShell blocked running `npm` due to execution policy; run tests locally in a shell that allows npm if you see a similar error.
 
 Example evidence (when errors are triggered and server is running):
+
+Development (full detail):
+
+```json
+{
+  "level": "error",
+  "message": "Error in GET /api/users",
+  "meta": {
+    "message": "Database connection failed!",
+    "stack": "Error: Database connection failed! at ..."
+  },
+  "timestamp": "2025-10-29T16:45:00Z"
+}
+```
+
+Production (stack redacted):
+
+```json
+{
+  "level": "error",
+  "message": "Error in GET /api/users",
+  "meta": {
+    "message": "Database connection failed!",
+    "stack": "REDACTED"
+  },
+  "timestamp": "2025-10-29T16:45:00Z"
+}
+```
+
+---
+
+Usage (example snippet in a route):
+
+```js
+import { sendSuccess, sendError } from "@/lib/responseHandler";
+import { ERROR_CODES } from "@/lib/errorCodes";
+
+export async function POST(req) {
+  try {
+    const body = await req.json();
+    if (!body.name)
+      return sendError(
+        "Missing required field: name",
+        ERROR_CODES.VALIDATION_ERROR,
+        400
+      );
+    return sendSuccess({ id: 1, name: body.name }, "Created", 201);
+  } catch (err) {
+    return sendError(
+      "Internal Server Error",
+      ERROR_CODES.INTERNAL_ERROR,
+      500,
+      err
+    );
+  }
+}
+```
+
+Why this helps:
+
+- Consistent client handling: frontend code can assume the same shape for errors and successes.
+- Observability: `error.code` + `timestamp` helps link logs/monitoring systems to specific failures.
+- Developer experience: new contributors find fewer surprises when adding or calling endpoints.
+
+### Reflection
+
+Consistent, noun-based, pluralized routes make APIs predictable. Predictability reduces onboarding time, avoids client-side surprises, and allows automated tooling (docs, tests) to operate uniformly across endpoints. Pagination and clear error semantics ensure scalability and robust integrations.
+
+---
 
 Development (full detail):
 

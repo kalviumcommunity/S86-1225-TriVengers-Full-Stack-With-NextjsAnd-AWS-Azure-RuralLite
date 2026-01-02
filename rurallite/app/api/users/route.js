@@ -7,6 +7,7 @@ import { ZodError } from "zod";
 import { handleError } from "../../../lib/errorHandler";
 import redis from "../../../lib/redis";
 import { logger } from "../../../lib/logger";
+import { getRequestContext } from "../../../lib/requestContext";
 
 const USERS_CACHE_TTL_SECONDS = 60;
 
@@ -14,6 +15,7 @@ const buildUsersCacheKey = (page, limit) => `users:list:p${page}:l${limit}`;
 
 export async function GET(req) {
   try {
+    const requestContext = getRequestContext(req, "GET /api/users");
     // Optional: Protect this route - only authenticated users can list users
     const user = verifyToken(req);
     if (!user) {
@@ -37,7 +39,7 @@ export async function GET(req) {
       const cached = await redis.get(cacheKey);
       if (cached) {
         const parsed = JSON.parse(cached);
-        logger.info("users:list cache hit", { cacheKey });
+        logger.info("users:list cache hit", requestContext.withMeta({ cacheKey }));
         return sendSuccess(
           parsed.users,
           "Users fetched successfully",
@@ -46,10 +48,10 @@ export async function GET(req) {
         );
       }
     } catch (cacheError) {
-      logger.warn("users:list cache read failed", {
+      logger.warn("users:list cache read failed", requestContext.withMeta({
         cacheKey,
         error: cacheError?.message,
-      });
+      }));
     }
 
     const [users, total] = await Promise.all([
@@ -82,25 +84,27 @@ export async function GET(req) {
         "EX",
         USERS_CACHE_TTL_SECONDS
       );
-      logger.info("users:list cache set", {
+      logger.info("users:list cache set", requestContext.withMeta({
         cacheKey,
         ttlSeconds: USERS_CACHE_TTL_SECONDS,
-      });
+      }));
     } catch (cacheError) {
-      logger.warn("users:list cache write failed", {
+      logger.warn("users:list cache write failed", requestContext.withMeta({
         cacheKey,
         error: cacheError?.message,
-      });
+      }));
     }
 
     return sendSuccess(users, "Users fetched successfully", 200, meta);
   } catch (error) {
-    return handleError(error, "GET /api/users");
+    const requestContext = getRequestContext(req, "GET /api/users");
+    return handleError(error, "GET /api/users", requestContext.withMeta());
   }
 }
 
 export async function POST(req) {
   try {
+    const requestContext = getRequestContext(req, "POST /api/users");
     const body = await req.json();
     try {
       const data = userSchema.parse(body);
@@ -131,22 +135,23 @@ export async function POST(req) {
         const keys = await redis.keys("users:list:*");
         if (keys.length) {
           await redis.del(...keys);
-          logger.info("users:list cache invalidated", { keys });
+          logger.info("users:list cache invalidated", requestContext.withMeta({ keys }));
         }
       } catch (cacheError) {
-        logger.warn("users:list cache invalidation failed", {
+        logger.warn("users:list cache invalidation failed", requestContext.withMeta({
           error: cacheError?.message,
-        });
+        }));
       }
 
       return sendSuccess(user, "User created successfully", 201);
     } catch (err) {
       if (err instanceof ZodError) {
-        return handleError(err, "POST /api/users (validation)");
+        return handleError(err, "POST /api/users (validation)", requestContext.withMeta());
       }
       throw err;
     }
   } catch (error) {
-    return handleError(error, "POST /api/users");
+    const requestContext = getRequestContext(req, "POST /api/users");
+    return handleError(error, "POST /api/users", requestContext.withMeta());
   }
 }

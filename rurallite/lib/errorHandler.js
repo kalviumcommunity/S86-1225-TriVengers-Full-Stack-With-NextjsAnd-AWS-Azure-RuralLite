@@ -7,7 +7,7 @@ import { logger } from "./logger";
  * - Logs full details (stack, message, code) via `logger`
  * - Returns appropriate `sendError(...)` response for the client
  */
-export function handleError(error, context = "unknown") {
+export function handleError(error, context = "unknown", meta = {}) {
   const isProd = process.env.NODE_ENV === "production";
 
   // Default mapping
@@ -36,6 +36,7 @@ export function handleError(error, context = "unknown") {
 
   // Log full details internally (redact stack in prod)
   logger.error(`Error in ${context}`, {
+    ...meta,
     message: error?.message,
     stack: isProd ? "REDACTED" : (error?.stack || "no stack"),
     code,

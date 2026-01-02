@@ -55,7 +55,7 @@ export function getCorsHeaders(origin) {
   headers["Access-Control-Allow-Methods"] =
     "GET, POST, PUT, PATCH, DELETE, OPTIONS";
   headers["Access-Control-Allow-Headers"] =
-    "Content-Type, Authorization, X-Requested-With";
+    "Content-Type, Authorization, X-Requested-With, X-Request-Id";
   headers["Access-Control-Max-Age"] = "86400"; // 24 hours
 
   return headers;
