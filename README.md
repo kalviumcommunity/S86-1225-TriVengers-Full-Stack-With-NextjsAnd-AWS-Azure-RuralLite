@@ -1494,6 +1494,81 @@ app:
 - **Resource Limits**: Set memory and CPU limits for containers
 - **Caching Strategy**: Implement layer caching for faster builds
 
+---
+
+## 🚀 Cloud Deployment
+
+RuralLite supports containerized deployment to major cloud platforms:
+
+### Quick Deployment
+
+#### AWS ECS (Elastic Container Service)
+```bash
+# Automated deployment script
+./deploy-aws.sh
+```
+
+#### Azure App Service for Containers
+```bash
+# PowerShell deployment script  
+./deploy-azure.ps1
+```
+
+### Deployment Features
+
+✅ **Multi-stage Docker builds** for optimized image size  
+✅ **Auto-scaling** based on CPU/memory usage  
+✅ **Health checks** and monitoring  
+✅ **CI/CD pipelines** with GitHub Actions  
+✅ **Zero-downtime deployments**  
+✅ **HTTPS enforcement** and security headers  
+
+### Supported Platforms
+
+| Platform | Service | Description |
+|----------|---------|-------------|
+| **AWS** | ECS Fargate | Serverless container orchestration |
+| **Azure** | App Service | Managed container hosting |
+
+### 📋 Prerequisites for Cloud Deployment
+
+- Docker installed locally
+- Cloud CLI configured (AWS CLI or Azure CLI)
+- Container registry access (ECR or ACR)
+- GitHub repository secrets configured
+
+### 📚 Detailed Deployment Guide
+
+For comprehensive deployment instructions, configuration options, monitoring setup, and troubleshooting:
+
+👉 **[View Complete Deployment Guide](./DEPLOYMENT.md)**
+
+The deployment guide covers:
+- Step-by-step setup for AWS ECS and Azure App Service
+- CI/CD pipeline configuration
+- Environment variable management
+- Auto-scaling configuration
+- Monitoring and logging setup
+- Security best practices
+- Troubleshooting common issues
+
+### Environment Configuration
+
+Production deployments require proper environment configuration:
+
+```bash
+# Copy environment template
+cp .env.example .env.production
+
+# Configure your production values
+# - Database connections
+# - Authentication secrets  
+# - Cloud service credentials
+# - API keys and external services
+```
+
+---
+
 #### Example Production Compose (Snippet)
 
 ```yaml
