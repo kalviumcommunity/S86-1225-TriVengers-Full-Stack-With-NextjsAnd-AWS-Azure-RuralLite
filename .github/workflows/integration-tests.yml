@@ -1,0 +1,171 @@
+name: Integration Testing
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  schedule:
+    - cron: '0 2 * * *' # Run daily at 2 AM UTC
+
+concurrency:
+  group: integration-tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  integration-tests:
+    runs-on: ubuntu-latest
+    name: API Integration Tests
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: test
+          POSTGRES_USER: test
+          POSTGRES_DB: rurallite_integration
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+        ports:
+          - 5432:5432
+
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: 'npm'
+
+      - name: Install dependencies
+        working-directory: ./rurallite
+        run: npm ci
+
+      - name: Generate Prisma Client
+        working-directory: ./rurallite
+        run: npx prisma generate
+        env:
+          DATABASE_URL: postgresql://test:test@localhost:5432/rurallite_integration
+
+      - name: Run database migrations
+        working-directory: ./rurallite
+        run: npx prisma migrate deploy
+        env:
+          DATABASE_URL: postgresql://test:test@localhost:5432/rurallite_integration
+
+      - name: Seed test database
+        working-directory: ./rurallite
+        run: npm run prisma:seed
+        env:
+          DATABASE_URL: postgresql://test:test@localhost:5432/rurallite_integration
+
+      - name: Start Next.js app in background
+        working-directory: ./rurallite
+        run: |
+          npm run build
+          npm run start &
+          sleep 10 # Wait for app to start
+        env:
+          DATABASE_URL: postgresql://test:test@localhost:5432/rurallite_integration
+          REDIS_URL: redis://localhost:6379
+          JWT_SECRET: integration_test_jwt_secret
+          NEXTAUTH_SECRET: integration_test_nextauth_secret
+          PORT: 3000
+
+      - name: Wait for application health check
+        run: |
+          timeout=60
+          while [ $timeout -gt 0 ]; do
+            if curl -f http://localhost:3000/api/health; then
+              echo "Application is healthy"
+              break
+            fi
+            echo "Waiting for application to be ready..."
+            sleep 2
+            timeout=$((timeout-2))
+          done
+          if [ $timeout -le 0 ]; then
+            echo "Application failed to start within timeout"
+            exit 1
+          fi
+
+      - name: Run API Integration Tests
+        run: |
+          # Run the API tests using the test scripts
+          node test-api.js
+          node test-auth-api.js
+        env:
+          API_BASE_URL: http://localhost:3000
+          TEST_DATABASE_URL: postgresql://test:test@localhost:5432/rurallite_integration
+
+      - name: Run Security Headers Test
+        run: |
+          # Install PowerShell if needed and run security tests
+          if command -v pwsh &> /dev/null; then
+            pwsh -File test-security-headers.ps1
+          else
+            echo "PowerShell not available, skipping security headers test"
+          fi
+
+      - name: Generate test report
+        if: always()
+        run: |
+          echo "## Integration Test Results" > integration-test-report.md
+          echo "- **Date:** $(date)" >> integration-test-report.md
+          echo "- **Commit:** ${{ github.sha }}" >> integration-test-report.md
+          echo "- **Branch:** ${{ github.ref_name }}" >> integration-test-report.md
+          echo "" >> integration-test-report.md
+          if [ -f test-results.txt ]; then
+            echo "### Test Results" >> integration-test-report.md
+            echo "\`\`\`" >> integration-test-report.md
+            cat test-results.txt >> integration-test-report.md
+            echo "\`\`\`" >> integration-test-report.md
+          fi
+
+      - name: Upload test artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: integration-test-results
+          path: |
+            integration-test-report.md
+            test-results.txt
+            test-output.txt
+          retention-days: 7
+
+      - name: Comment PR with test results
+        uses: actions/github-script@v7
+        if: github.event_name == 'pull_request' && always()
+        with:
+          script: |
+            const fs = require('fs');
+            let comment = '## 🧪 Integration Test Results\n\n';
+            
+            if (fs.existsSync('integration-test-report.md')) {
+              const report = fs.readFileSync('integration-test-report.md', 'utf8');
+              comment += report;
+            } else {
+              comment += 'Integration test report not found.';
+            }
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });

@@ -69,6 +69,151 @@
 
 **Summary:**
 This project uses cloud-managed secret storage (AWS Secrets Manager or Azure Key Vault) to securely store and retrieve environment variables at runtime. Access is tightly controlled using IAM or Managed Identities, and secrets are rotated regularly. This approach minimizes risk of credential leaks and supports secure, scalable deployments.
+
+# 🚀 CI/CD Pipeline
+
+## GitHub Actions Workflows
+
+This project uses GitHub Actions for automated testing, building, and deployment. The CI/CD pipeline consists of three main workflows:
+
+### 1. **Main CI Pipeline** (`.github/workflows/ci.yml`)
+
+**Purpose:** Validates every code change through comprehensive testing and building stages.
+
+**Stages:**
+- **Lint** → Code style and quality checks using ESLint
+- **Test** → Unit tests with coverage reporting using Vitest
+- **Build** → Next.js application build verification
+- **Security** → Dependency vulnerability scanning
+- **Deploy** → Automated deployment to staging/production
+
+**Triggers:**
+- Push to `main` or `develop` branches
+- Pull requests to `main` or `develop`
+- Manual workflow dispatch
+
+**Key Features:**
+- ✅ Parallel job execution for faster CI runs
+- ✅ PostgreSQL and Redis services for database testing
+- ✅ Build caching for improved performance
+- ✅ Artifact uploads for deployment stages
+- ✅ Environment-based deployments (staging/production)
+
+### 2. **Integration Testing** (`.github/workflows/integration-tests.yml`)
+
+**Purpose:** End-to-end API testing with real database and services.
+
+**Features:**
+- Full application startup with database seeding
+- API route testing using existing test scripts
+- Security headers validation
+- Automated test reporting in PR comments
+- Daily scheduled runs for continuous monitoring
+
+### 3. **Docker Build & Push** (`.github/workflows/docker.yml`)
+
+**Purpose:** Containerization and deployment automation.
+
+**Features:**
+- Multi-platform Docker builds (AMD64/ARM64)
+- Container security scanning with Trivy
+- GitHub Container Registry publishing
+- Automated deployment on main branch pushes
+
+## CI/CD Benefits
+
+### 🔄 **Continuous Integration**
+- Every code change is automatically validated
+- Early detection of bugs and integration issues
+- Consistent code quality enforcement
+- Automated dependency security checks
+
+### 🚀 **Continuous Deployment**
+- Zero-downtime deployments
+- Environment-specific configurations
+- Rollback capabilities with tagged releases
+- Infrastructure as Code (Docker containers)
+
+### 📊 **Quality Assurance**
+- Code coverage reporting
+- Security vulnerability scanning
+- Performance regression detection
+- Integration test automation
+
+## Workflow Configuration
+
+### **Concurrency Control**
+```yaml
+concurrency:
+  group: ${{ github.ref }}
+  cancel-in-progress: true
+```
+Prevents overlapping runs on the same branch, saving compute resources.
+
+### **Build Caching**
+```yaml
+- uses: actions/setup-node@v4
+  with:
+    cache: 'npm'
+```
+Speeds up CI runs by caching npm dependencies between builds.
+
+### **Secrets Management**
+GitHub Secrets are used for sensitive deployment credentials:
+- `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` for AWS deployments
+- `AZURE_WEBAPP_PUBLISH_PROFILE` for Azure deployments
+
+### **Environment Strategy**
+- **Staging** → Deploys from `develop` branch for testing
+- **Production** → Deploys from `main` branch for live users
+
+## Local Development Integration
+
+The CI pipeline mirrors local development commands:
+
+```bash
+# Lint (matches CI lint stage)
+npm run lint
+
+# Test (matches CI test stage)
+npm test -- --coverage
+
+# Build (matches CI build stage)
+npm run build
+```
+
+## Monitoring & Reporting
+
+- **Test Coverage:** Uploaded to Codecov for tracking
+- **Security Scans:** Integrated with GitHub Security tab
+- **Build Artifacts:** Stored for deployment and debugging
+- **PR Comments:** Automated test result reporting
+
+## Deployment Automation
+
+The pipeline supports deployment to multiple environments:
+
+1. **Staging Environment** (develop branch)
+   - Automatic deployment for testing
+   - Database migrations
+   - Environment variable injection
+
+2. **Production Environment** (main branch)
+   - Manual approval gates (can be configured)
+   - Blue/green deployment strategies
+   - Health checks and rollback capabilities
+
+## Getting Started with CI/CD
+
+1. **Fork/Clone** this repository
+2. **Configure Secrets** in GitHub Settings → Secrets and Variables → Actions
+3. **Create Pull Request** to trigger the CI pipeline
+4. **Monitor Results** in the Actions tab
+
+The CI/CD pipeline ensures that every change is thoroughly tested and deployed consistently, maintaining high code quality and reducing deployment risks.
+
+---
+
 # 📘 RuralLite Learning Platform
 
 ### Offline-First Educational Web App for Low-Bandwidth Rural Schools

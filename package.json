@@ -1,7 +1,8 @@
 {
   "scripts": {
     "prepare": "husky install",
-    "lint": "eslint . --ext .js,.jsx,.ts,.tsx"
+    "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
+    "test:ci": "node test-ci-pipeline.js"
   },
   "lint-staged": {
     "*.{ts,tsx,js,jsx}": [
