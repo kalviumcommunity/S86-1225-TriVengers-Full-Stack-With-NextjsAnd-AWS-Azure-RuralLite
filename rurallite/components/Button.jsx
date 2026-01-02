@@ -1,5 +1,7 @@
 'use client';
 
+import React from 'react';
+
 /**
  * Simple Button component for testing
  */

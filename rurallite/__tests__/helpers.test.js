@@ -1,7 +1,4 @@
-/**
- * @jest-environment jsdom
- */
-
+import { describe, it, expect } from 'vitest';
 import { formatDate, validateEmail, capitalize, truncateString } from '@/lib/utils/helpers';
 
 describe('Utility Functions', () => {

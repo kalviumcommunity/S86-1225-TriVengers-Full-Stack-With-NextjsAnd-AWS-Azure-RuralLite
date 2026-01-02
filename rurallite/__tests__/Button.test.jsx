@@ -1,10 +1,7 @@
-/**
- * @jest-environment jsdom
- */
-
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { describe, it, expect, vi } from 'vitest';
 import Button from '@/components/Button';
 
 describe('Button Component', () => {
@@ -21,7 +18,7 @@ describe('Button Component', () => {
   });
 
   it('calls onClick handler when clicked', async () => {
-    const handleClick = jest.fn();
+    const handleClick = vi.fn();
     render(<Button label="Click Me" onClick={handleClick} />);
     
     const button = screen.getByRole('button', { name: /click me/i });
@@ -31,7 +28,7 @@ describe('Button Component', () => {
   });
 
   it('does not call onClick when disabled', async () => {
-    const handleClick = jest.fn();
+    const handleClick = vi.fn();
     render(<Button label="Disabled" onClick={handleClick} disabled />);
     
     const button = screen.getByRole('button', { name: /disabled/i });
