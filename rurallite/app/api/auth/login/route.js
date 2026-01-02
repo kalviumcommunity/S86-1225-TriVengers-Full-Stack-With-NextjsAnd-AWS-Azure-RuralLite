@@ -4,9 +4,12 @@ import prisma from "../../../../lib/prisma";
 import { sendSuccess, sendError } from "../../../../lib/responseHandler";
 import { ERROR_CODES } from "../../../../lib/errorCodes";
 import { generateTokenPair } from "../../../../lib/jwtUtils";
+import { logger } from "../../../../lib/logger";
+import { getRequestContext } from "../../../../lib/requestContext";
 
 export async function POST(req) {
   try {
+    const requestContext = getRequestContext(req, "POST /api/auth/login");
     const body = await req.json();
     const { email, password } = body;
 
@@ -20,6 +23,8 @@ export async function POST(req) {
     }
 
     // Find user by email
+    logger.info("login attempt", requestContext.withMeta({ email }));
+
     const user = await prisma.user.findUnique({
       where: { email },
     });
@@ -82,9 +87,12 @@ export async function POST(req) {
       maxAge: 60 * 60 * 24 * 7, // 7 days
     });
 
+    logger.info("login success", requestContext.withMeta({ userId: user.id, role: user.role }));
+
     return res;
   } catch (error) {
-    console.error("Login error:", error);
+    const requestContext = getRequestContext(req, "POST /api/auth/login");
+    logger.error("login failed", requestContext.withMeta({ error: error?.message }));
     return sendError(
       "Login failed",
       ERROR_CODES.INTERNAL_ERROR,

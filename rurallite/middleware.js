@@ -8,10 +8,18 @@ const JWT_SECRET =
 export async function middleware(request) {
   const { pathname } = request.nextUrl;
   const origin = request.headers.get("origin") || "";
+  const requestId = request.headers.get("x-request-id") || crypto.randomUUID();
+
+  const attachRequestId = (response) => {
+    response.headers.set("x-request-id", requestId);
+    return response;
+  };
 
   // Handle preflight OPTIONS requests for CORS
   if (request.method === "OPTIONS") {
-    return createPreflightResponse(origin);
+    const res = createPreflightResponse(origin);
+    attachRequestId(res);
+    return res;
   }
 
   // Define protected routes and their required roles
@@ -29,6 +37,8 @@ export async function middleware(request) {
   if (matchedRoute) {
     const authHeader = request.headers.get("authorization");
     const token = authHeader?.split(" ")[1];
+    const requestHeaders = new Headers(request.headers);
+    requestHeaders.set("x-request-id", requestId);
 
     if (!token) {
       const response = NextResponse.json(
@@ -38,7 +48,7 @@ export async function middleware(request) {
         },
         { status: 401 }
       );
-      return applyCorsHeaders(response, origin);
+      return applyCorsHeaders(attachRequestId(response), origin);
     }
 
     try {
@@ -56,11 +66,10 @@ export async function middleware(request) {
           },
           { status: 403 }
         );
-        return applyCorsHeaders(response, origin);
+        return applyCorsHeaders(attachRequestId(response), origin);
       }
 
       // Attach user info to headers for downstream handlers
-      const requestHeaders = new Headers(request.headers);
       requestHeaders.set("x-user-id", payload.id.toString());
       requestHeaders.set("x-user-email", payload.email);
       requestHeaders.set("x-user-role", payload.role);
@@ -71,7 +80,7 @@ export async function middleware(request) {
         },
       });
 
-      return applyCorsHeaders(response, origin);
+      return applyCorsHeaders(attachRequestId(response), origin);
     } catch (error) {
       const response = NextResponse.json(
         {
@@ -80,14 +89,20 @@ export async function middleware(request) {
         },
         { status: 403 }
       );
-      return applyCorsHeaders(response, origin);
+      return applyCorsHeaders(attachRequestId(response), origin);
     }
   }
 
   // Apply CORS headers to all API routes (public and protected)
   if (pathname.startsWith("/api/")) {
-    const response = NextResponse.next();
-    return applyCorsHeaders(response, origin);
+    const requestHeaders = new Headers(request.headers);
+    requestHeaders.set("x-request-id", requestId);
+    const response = NextResponse.next({
+      request: {
+        headers: requestHeaders,
+      },
+    });
+    return applyCorsHeaders(attachRequestId(response), origin);
   }
 
   // Protect app pages (dashboard, users) using cookie-based JWT
@@ -99,20 +114,29 @@ export async function middleware(request) {
 
     if (!token) {
       const url = new URL("/login", request.url);
-      return NextResponse.redirect(url);
+        return attachRequestId(NextResponse.redirect(url));
     }
 
     try {
       const secret = new TextEncoder().encode(JWT_SECRET);
       await jwtVerify(token, secret);
-      return NextResponse.next();
+        return attachRequestId(NextResponse.next());
     } catch (err) {
       const url = new URL("/login", request.url);
-      return NextResponse.redirect(url);
+        return attachRequestId(NextResponse.redirect(url));
     }
   }
 
-  return NextResponse.next();
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set("x-request-id", requestId);
+
+  return attachRequestId(
+    NextResponse.next({
+      request: {
+        headers: requestHeaders,
+      },
+    })
+  );
 }
 
 // Configure which paths the middleware should run on

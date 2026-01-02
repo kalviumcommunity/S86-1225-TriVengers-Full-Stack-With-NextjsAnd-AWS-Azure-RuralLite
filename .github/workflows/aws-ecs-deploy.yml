@@ -17,8 +17,35 @@ permissions:
   contents: read
 
 jobs:
+  test:
+    name: Run Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: cd rurallite && npm install
+    
+    - name: Run Unit Tests
+      run: cd rurallite && npm run test:ci
+    
+    - name: Upload Coverage
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./rurallite/coverage/lcov.info
+        fail_ci_if_error: false
+      if: always()
+
   deploy:
     name: Deploy to AWS ECS
+    needs: test
     runs-on: ubuntu-latest
     environment: production
 
@@ -70,3 +97,5 @@ jobs:
         sleep 60
         # Add your health check logic here
         echo "Deployment completed successfully"
+
+jobs:

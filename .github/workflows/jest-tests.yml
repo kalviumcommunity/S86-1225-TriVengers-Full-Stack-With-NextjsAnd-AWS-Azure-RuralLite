@@ -1,0 +1,65 @@
+name: Unit Tests & Coverage
+
+on:
+  push:
+    branches: [ main, develop, feature/*, 'feature/**' ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: Run Jest Tests
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        node-version: [ 18.x, 20.x ]
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: cd rurallite && npm install
+    
+    - name: Run linter
+      run: cd rurallite && npm run lint --max-warnings=0
+      continue-on-error: true
+    
+    - name: Run Unit Tests
+      run: cd rurallite && npm run test:ci
+    
+    - name: Generate Coverage Report
+      run: cd rurallite && npm run test:coverage -- --coverageReporters=lcov
+      if: always()
+    
+    - name: Upload Coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./rurallite/coverage/lcov.info
+        flags: unittests
+        name: codecov-umbrella
+        fail_ci_if_error: false
+      if: always()
+    
+    - name: Comment PR with Coverage
+      uses: actions/github-script@v7
+      if: github.event_name == 'pull_request'
+      with:
+        script: |
+          const fs = require('fs');
+          const coverage = fs.readFileSync('./rurallite/jest-coverage-report.txt', 'utf8');
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: `## Test Coverage Report\n\`\`\`\n${coverage}\n\`\`\``
+          });
+      continue-on-error: true

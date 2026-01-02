@@ -13,8 +13,35 @@ env:
   RESOURCE_GROUP: kalvium-rg
 
 jobs:
+  test:
+    name: Run Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: cd rurallite && npm install
+    
+    - name: Run Unit Tests
+      run: cd rurallite && npm run test:ci
+    
+    - name: Upload Coverage
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./rurallite/coverage/lcov.info
+        fail_ci_if_error: false
+      if: always()
+
   build:
     runs-on: ubuntu-latest
+    needs: test
 
     steps:
     - uses: actions/checkout@v4
@@ -62,3 +89,5 @@ jobs:
         # Health check
         curl -f ${{ steps.deploy-to-webapp.outputs.webapp-url }}/api/health || exit 1
         echo "Deployment completed successfully"
+
+jobs:
