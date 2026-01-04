@@ -8,28 +8,28 @@ import { verifyAccessToken } from "./jwtUtils";
  * @returns {Object|null} - Decoded user data or null if invalid
  */
 export function verifyToken(req) {
-    try {
-        // Get authorization header
-        const authHeader = req.headers.get("authorization");
+  try {
+    // Get authorization header
+    const authHeader = req.headers.get("authorization");
 
-        if (!authHeader) {
-            return null;
-        }
-
-        // Extract token from "Bearer <token>" format
-        const token = authHeader.split(" ")[1];
-
-        if (!token) {
-            return null;
-        }
-
-        // Verify and decode access token
-        const decoded = verifyAccessToken(token);
-        return decoded;
-    } catch (error) {
-        // Token is invalid or expired
-        return null;
+    if (!authHeader) {
+      return null;
     }
+
+    // Extract token from "Bearer <token>" format
+    const token = authHeader.split(" ")[1];
+
+    if (!token) {
+      return null;
+    }
+
+    // Verify and decode access token
+    const decoded = verifyAccessToken(token);
+    return decoded;
+  } catch (error) {
+    // Token is invalid or expired
+    return null;
+  }
 }
 
 /**
@@ -39,24 +39,22 @@ export function verifyToken(req) {
  * @returns {Function} - Protected route handler
  */
 export function withAuth(handler) {
-    return async (req, context) => {
-        const user = verifyToken(req);
+  return async (req, context) => {
+    const user = verifyToken(req);
 
-        if (!user) {
-            return sendError(
-                "Authentication required. Please provide a valid token.",
-                ERROR_CODES.UNAUTHORIZED,
-                401
-            );
-        }
-            );
+    if (!user) {
+      return sendError(
+        "Authentication required. Please provide a valid token.",
+        ERROR_CODES.UNAUTHORIZED,
+        401
+      );
     }
 
     // Attach user to request for use in handler
     req.user = user;
 
     return handler(req, context);
-};
+  };
 }
 
 /**
@@ -66,9 +64,9 @@ export function withAuth(handler) {
  * @returns {boolean} - Whether user has permission
  */
 export function checkRole(user, allowedRoles) {
-    if (!user || !user.role) {
-        return false;
-    }
+  if (!user || !user.role) {
+    return false;
+  }
 
-    return allowedRoles.includes(user.role);
+  return allowedRoles.includes(user.role);
 }
