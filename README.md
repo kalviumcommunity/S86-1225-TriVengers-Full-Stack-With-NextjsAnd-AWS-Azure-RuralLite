@@ -1379,6 +1379,18 @@ To improve user experience and trust, interactive feedback UI elements were adde
 - API success and failure states
 - Delete confirmation actions
 
+## 📝 Day 11 – Continuous Integration (CI) with GitHub Actions
+
+- [x] Implemented a GitHub Actions CI pipeline to automatically run checks on every push and pull request to the main and develop branches.
+
+- [x] Added automated Lint, Test, and Build stages to ensure code quality, validate functionality, and verify successful Next.js builds.
+
+- [x] Configured workflow triggers and a manual workflow_dispatch option for controlled CI execution.
+
+- [x] Optimized pipeline performance using npm dependency caching and concurrency control to avoid redundant workflow runs.
+
+- [x] Ensured secure handling of sensitive credentials by using GitHub Actions Secrets and avoiding hardcoded AWS or Azure keys in the repository.
+
 ## 🐳 Docker & Docker Compose Setup
 
 ### Overview
