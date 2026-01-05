@@ -1,14 +1,10 @@
-name: CI Pipeline
+name: CI Pipeline with Verification & Rollback
 
 on:
   push:
-    branches:
-      - main
-      - develop
+    branches: [main, develop]
   pull_request:
-    branches:
-      - main
-      - develop
+    branches: [main, develop]
   workflow_dispatch:
 
 concurrency:
@@ -16,7 +12,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  lint-test-build:
+  verify-and-rollback:
     runs-on: ubuntu-latest
 
     defaults:
@@ -24,25 +20,44 @@ jobs:
         working-directory: rurallite
 
     steps:
-      - name: Checkout Repository
+      - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Set up Node.js
+      - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: 18
           cache: npm
           cache-dependency-path: rurallite/package-lock.json
 
-      - name: Install Dependencies
+      - name: Install dependencies
         run: npm ci
 
-      - name: Lint Code
+      - name: Lint
         run: npm run lint
 
-      - name: Run Tests
+      - name: Test
         run: npm test -- --coverage
         continue-on-error: true
 
-      - name: Build Application
+      - name: Build
         run: npm run build
+
+      # 🔍 Deployment Verification
+      - name: Verify Deployment
+        run: |
+          echo "Running deployment verification..."
+          curl -f http://localhost:3000/api/health || exit 1
+
+      # 🚦 Smoke Tests
+      - name: Run Smoke Tests
+        run: |
+          echo "Running smoke tests..."
+          npx jest --testPathPattern=__smoke_tests__ --runInBand
+
+      # 🔄 Rollback (Simulated)
+      - name: Rollback Deployment
+        if: failure()
+        run: |
+          echo "Deployment failed."
+          echo "Rolling back to previous stable version (simulated)."
