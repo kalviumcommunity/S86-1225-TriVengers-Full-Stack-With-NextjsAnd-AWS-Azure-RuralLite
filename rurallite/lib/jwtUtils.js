@@ -180,3 +180,6 @@ export const TOKEN_CONFIG = {
     ACCESS_TOKEN_EXPIRY_MS: 15 * 60 * 1000, // 15 minutes in milliseconds
     REFRESH_TOKEN_EXPIRY_MS: 7 * 24 * 60 * 60 * 1000, // 7 days in milliseconds
 };
+
+// Alias for backward compatibility
+export const verifyToken = verifyAccessToken;

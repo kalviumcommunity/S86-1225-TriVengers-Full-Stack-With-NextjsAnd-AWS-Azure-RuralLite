@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcrypt";
-import prisma from "../../../../lib/prisma";
+import { getCollection } from "../../../../lib/mongodb";
 import { sendSuccess, sendError } from "../../../../lib/responseHandler";
 import { ERROR_CODES } from "../../../../lib/errorCodes";
 
@@ -38,9 +38,8 @@ export async function POST(req) {
         }
 
         // Check if user already exists
-        const existingUser = await prisma.user.findUnique({
-            where: { email },
-        });
+        const usersCollection = await getCollection("users");
+        const existingUser = await usersCollection.findOne({ email });
 
         if (existingUser) {
             return sendError(
@@ -54,21 +53,24 @@ export async function POST(req) {
         const hashedPassword = await bcrypt.hash(password, 10);
 
         // Create new user with hashed password
-        const newUser = await prisma.user.create({
-            data: {
-                name,
-                email,
-                password: hashedPassword,
-                role: role || "STUDENT", // Default role is STUDENT
-            },
-            select: {
-                id: true,
-                name: true,
-                email: true,
-                role: true,
-                createdAt: true,
-            },
-        });
+        const newUserData = {
+            name,
+            email,
+            password: hashedPassword,
+            role: role || "STUDENT", // Default role is STUDENT
+            createdAt: new Date(),
+            updatedAt: new Date()
+        };
+
+        const result = await usersCollection.insertOne(newUserData);
+
+        const newUser = {
+            id: result.insertedId.toString(),
+            name,
+            email,
+            role: role || "STUDENT",
+            createdAt: newUserData.createdAt
+        };
 
         return sendSuccess(
             newUser,
@@ -84,4 +86,4 @@ export async function POST(req) {
             error?.message ?? error
         );
     }
-}
+} 

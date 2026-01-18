@@ -9,14 +9,7 @@ import {
   useState,
 } from "react";
 
-const THEME_KEY = "uiTheme";
 const SIDEBAR_KEY = "uiSidebarOpen";
-
-const getInitialTheme = () => {
-  if (typeof window === "undefined") return "light";
-  const stored = window.localStorage.getItem(THEME_KEY);
-  return stored === "dark" ? "dark" : "light";
-};
 
 const getInitialSidebarState = () => {
   if (typeof window === "undefined") return true;
@@ -28,34 +21,25 @@ const getInitialSidebarState = () => {
 const UIContext = createContext(undefined);
 
 export function UIProvider({ children }) {
-  const [theme, setTheme] = useState(getInitialTheme);
   const [sidebarOpen, setSidebarOpen] = useState(getInitialSidebarState);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    const root = document.documentElement;
-    root.dataset.theme = theme;
-    root.classList.toggle("dark", theme === "dark");
-    window.localStorage.setItem(THEME_KEY, theme);
-  }, [theme]);
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
     window.localStorage.setItem(SIDEBAR_KEY, String(sidebarOpen));
   }, [sidebarOpen]);
 
-  const toggleTheme = useCallback(
-    () => setTheme((prev) => (prev === "light" ? "dark" : "light")),
-    []
-  );
-
   const toggleSidebar = useCallback(() => setSidebarOpen((prev) => !prev), []);
 
   const closeSidebar = useCallback(() => setSidebarOpen(false), []);
 
   const value = useMemo(
-    () => ({ theme, toggleTheme, sidebarOpen, toggleSidebar, closeSidebar }),
-    [theme, sidebarOpen, toggleTheme, toggleSidebar, closeSidebar]
+    () => ({ sidebarOpen, toggleSidebar, closeSidebar }),
+    [sidebarOpen, toggleSidebar, closeSidebar]
   );
 
   return <UIContext.Provider value={value}>{children}</UIContext.Provider>;

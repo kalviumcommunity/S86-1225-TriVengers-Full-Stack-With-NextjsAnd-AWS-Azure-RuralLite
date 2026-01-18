@@ -1,6 +1,0 @@
--- Sample EXPLAIN ANALYZE output BEFORE adding index on Product.name (full table scan expected)
-Seq Scan on "Product"  (cost=0.00..35.00 rows=1 width=120) (actual time=0.040..0.042 rows=1 loops=1)
-  Filter: (name = 'Bench Product')
-  Rows Removed by Filter: 99
-Planning Time: 0.100 ms
-Execution Time: 0.120 ms

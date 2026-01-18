@@ -23,7 +23,15 @@ export const fetcher = async (url) => {
         throw error;
     }
 
-    return res.json();
+    const responseData = await res.json();
+
+    // If response has success and data fields (from responseHandler), extract data
+    if (responseData && responseData.success && responseData.data !== undefined) {
+        return responseData.data;
+    }
+
+    // Otherwise return the whole response
+    return responseData;
 };
 
 /**

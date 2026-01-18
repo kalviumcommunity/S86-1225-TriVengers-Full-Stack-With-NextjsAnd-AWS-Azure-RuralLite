@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import prisma from "../../../../lib/prisma";
+import { getCollection } from "../../../../lib/mongodb";
+import { ObjectId } from "mongodb";
 import { sendSuccess, sendError } from "../../../../lib/responseHandler";
 import { ERROR_CODES } from "../../../../lib/errorCodes";
 import { handleError } from "../../../../lib/errorHandler";
@@ -12,22 +13,27 @@ import { getRequestContext } from "../../../../lib/requestContext";
 export async function GET(req) {
     try {
         const requestContext = getRequestContext(req, "GET /api/admin/users");
+
         // Get user info from middleware headers
         const userRole = req.headers.get("x-user-role");
         const userEmail = req.headers.get("x-user-email");
 
         // Fetch all users with full details
-        const users = await prisma.user.findMany({
-            select: {
-                id: true,
-                name: true,
-                email: true,
-                role: true,
-                createdAt: true,
-                updatedAt: true,
-            },
-            orderBy: { createdAt: "desc" },
-        });
+        const usersCollection = await getCollection("users");
+        const usersData = await usersCollection
+            .find({})
+            .project({ password: 0 })
+            .sort({ createdAt: -1 })
+            .toArray();
+
+        const users = usersData.map(user => ({
+            id: user._id.toString(),
+            name: user.name,
+            email: user.email,
+            role: user.role,
+            createdAt: user.createdAt,
+            updatedAt: user.updatedAt,
+        }));
 
         return sendSuccess(
             users,
@@ -62,14 +68,28 @@ export async function DELETE(req) {
             );
         }
 
-        const deletedUser = await prisma.user.delete({
-            where: { id: parseInt(userId) },
-            select: {
-                id: true,
-                name: true,
-                email: true,
-            },
-        });
+        if (!ObjectId.isValid(userId)) {
+            return sendError(
+                "Invalid user ID",
+                ERROR_CODES.VALIDATION_ERROR,
+                400
+            );
+        }
+
+        const usersCollection = await getCollection("users");
+        const userToDelete = await usersCollection.findOne({ _id: new ObjectId(userId) });
+
+        if (!userToDelete) {
+            return sendError("User not found", ERROR_CODES.NOT_FOUND, 404);
+        }
+
+        await usersCollection.deleteOne({ _id: new ObjectId(userId) });
+
+        const deletedUser = {
+            id: userToDelete._id.toString(),
+            name: userToDelete.name,
+            email: userToDelete.email,
+        };
 
         return sendSuccess(
             deletedUser,
@@ -80,4 +100,4 @@ export async function DELETE(req) {
         const requestContext = getRequestContext(req, "DELETE /api/admin/users");
         return handleError(error, "DELETE /api/admin/users", requestContext.withMeta());
     }
-}
+} 

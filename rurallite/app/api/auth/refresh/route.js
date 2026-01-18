@@ -1,18 +1,19 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import prisma from "../../../../../lib/prisma";
-import { sendError } from "../../../../../lib/responseHandler";
-import { ERROR_CODES } from "../../../../../lib/errorCodes";
+import { getCollection } from "../../../../lib/mongodb";
+import { sendError } from "../../../../lib/responseHandler";
+import { ERROR_CODES } from "../../../../lib/errorCodes";
 import {
     verifyRefreshToken,
     generateTokenPair,
-} from "../../../../../lib/jwtUtils";
+} from "../../../../lib/jwtUtils";
+import { devError } from "../../../../lib/utils/devLogger";
 
 /**
  * POST /api/auth/refresh
- * 
+ *
  * Refresh access token using refresh token
- * 
+ *
  * Flow:
  * 1. Client sends refresh token (from HTTP-only cookie)
  * 2. Server verifies refresh token
@@ -36,7 +37,6 @@ export async function POST(req) {
 
         // Verify refresh token
         const decoded = verifyRefreshToken(refreshToken);
-
         if (!decoded) {
             return sendError(
                 "Invalid or expired refresh token",
@@ -46,9 +46,11 @@ export async function POST(req) {
         }
 
         // Verify user still exists
-        const user = await prisma.user.findUnique({
-            where: { id: decoded.id },
-        });
+        const usersCollection = await getCollection("users");
+        const user = await usersCollection.findOne(
+            { email: decoded.email },
+            { projection: { password: 0 } }
+        );
 
         if (!user) {
             return sendError("User not found", ERROR_CODES.NOT_FOUND, 404);
@@ -56,7 +58,7 @@ export async function POST(req) {
 
         // Generate new token pair (token rotation)
         const { accessToken, refreshToken: newRefreshToken } = generateTokenPair({
-            id: user.id,
+            id: user._id.toString(),
             email: user.email,
             role: user.role,
         });
@@ -69,7 +71,7 @@ export async function POST(req) {
                 data: {
                     accessToken,
                     user: {
-                        id: user.id,
+                        id: user._id.toString(),
                         name: user.name,
                         email: user.email,
                         role: user.role,
@@ -103,7 +105,7 @@ export async function POST(req) {
 
         return res;
     } catch (error) {
-        console.error("Token refresh error:", error);
+        devError("Token refresh error:", error);
         return sendError(
             "Failed to refresh token",
             ERROR_CODES.INTERNAL_ERROR,
@@ -111,4 +113,4 @@ export async function POST(req) {
             error?.message ?? error
         );
     }
-}
+} 

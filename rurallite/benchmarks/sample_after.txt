@@ -1,5 +1,0 @@
--- Sample EXPLAIN ANALYZE output AFTER adding index on Product.name (index scan expected)
-Index Scan using \"Product_name_idx\" on "Product"  (cost=0.42..8.44 rows=1 width=120) (actual time=0.020..0.022 rows=1 loops=1)
-  Index Cond: (name = 'Bench Product')
-Planning Time: 0.080 ms
-Execution Time: 0.045 ms

@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
-import prisma from "../../../../lib/prisma";
+import { getCollection } from "../../../../lib/mongodb";
 import { sendSuccess, sendError } from "../../../../lib/responseHandler";
 import { ERROR_CODES } from "../../../../lib/errorCodes";
 import { getCurrentUser } from "../../../../lib/roleMiddleware";
+import { devError } from "../../../../lib/utils/devLogger";
 
 /**
  * GET /api/auth/me
@@ -23,19 +24,13 @@ export async function GET(req) {
         }
 
         // Fetch user from database
-        const user = await prisma.user.findUnique({
-            where: { id: currentUser.id },
-            select: {
-                id: true,
-                name: true,
-                email: true,
-                role: true,
-                createdAt: true,
-                updatedAt: true,
-            },
-        });
+        const usersCollection = await getCollection("users");
+        const userData = await usersCollection.findOne(
+            { email: currentUser.email },
+            { projection: { password: 0 } }
+        );
 
-        if (!user) {
+        if (!userData) {
             return sendError(
                 "User not found",
                 ERROR_CODES.NOT_FOUND,
@@ -43,13 +38,22 @@ export async function GET(req) {
             );
         }
 
+        const user = {
+            id: userData._id.toString(),
+            name: userData.name,
+            email: userData.email,
+            role: userData.role,
+            createdAt: userData.createdAt,
+            updatedAt: userData.updatedAt,
+        };
+
         return sendSuccess(
             user,
             "Profile fetched successfully",
             200
         );
     } catch (error) {
-        console.error("Get profile error:", error);
+        devError("Get profile error:", error);
         return sendError(
             "Failed to fetch profile",
             ERROR_CODES.INTERNAL_ERROR,
@@ -57,4 +61,4 @@ export async function GET(req) {
             error?.message ?? error
         );
     }
-}
+} 

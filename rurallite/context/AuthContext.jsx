@@ -45,12 +45,77 @@ const clearSession = () => {
 };
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(readStoredUser);
-  const [token, setToken] = useState(readStoredToken);
-  const [status, setStatus] = useState(() =>
-    readStoredToken() && readStoredUser() ? "authenticated" : "unauthenticated"
-  );
+  const [mounted, setMounted] = useState(false);
+  const [user, setUser] = useState(null);
+  const [token, setToken] = useState(null);
+  const [status, setStatus] = useState("unauthenticated");
   const [error, setError] = useState(null);
+
+  // Initialize auth state only on client side to avoid hydration mismatch
+  useEffect(() => {
+    const storedUser = readStoredUser();
+    const storedToken = readStoredToken();
+
+    if (storedUser && storedToken) {
+      setUser(storedUser);
+      setToken(storedToken);
+      setStatus("authenticated");
+    }
+
+    setMounted(true);
+  }, []);
+
+  // Handle tab visibility changes and storage events for cross-tab sync
+  useEffect(() => {
+    if (!mounted) return;
+
+    const handleStorageChange = (e) => {
+      if (e.key === STORAGE_KEYS.user || e.key === STORAGE_KEYS.token) {
+        const storedUser = readStoredUser();
+        const storedToken = readStoredToken();
+
+        if (!storedUser || !storedToken) {
+          // User logged out in another tab
+          setUser(null);
+          setToken(null);
+          setStatus("unauthenticated");
+          setError(null);
+        } else {
+          // User logged in or updated in another tab
+          setUser(storedUser);
+          setToken(storedToken);
+          setStatus("authenticated");
+        }
+      }
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        // Tab became visible, check if auth state is still valid
+        const storedUser = readStoredUser();
+        const storedToken = readStoredToken();
+
+        if (status === "authenticated" && (!storedUser || !storedToken)) {
+          setUser(null);
+          setToken(null);
+          setStatus("unauthenticated");
+          setError(null);
+        } else if (status !== "authenticated" && storedUser && storedToken) {
+          setUser(storedUser);
+          setToken(storedToken);
+          setStatus("authenticated");
+        }
+      }
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [mounted, status]);
 
   const login = useCallback(async (credentials) => {
     if (!credentials?.email || !credentials?.password) {
