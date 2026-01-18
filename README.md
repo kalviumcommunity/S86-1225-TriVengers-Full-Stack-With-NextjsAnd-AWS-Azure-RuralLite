@@ -1379,6 +1379,30 @@ To improve user experience and trust, interactive feedback UI elements were adde
 - API success and failure states
 - Delete confirmation actions
 
+## 📝 Day 12 – Continuous Integration (CI) with GitHub Actions
+
+- [x] Implemented a GitHub Actions CI pipeline to automatically run checks on every push and pull request to the main and develop branches.
+
+- [x] Added automated Lint, Test, and Build stages to ensure code quality, validate functionality, and verify successful Next.js builds.
+
+- [x] Configured workflow triggers and a manual workflow_dispatch option for controlled CI execution.
+
+- [x] Optimized pipeline performance using npm dependency caching and concurrency control to avoid redundant workflow runs.
+
+- [x] Ensured secure handling of sensitive credentials by using GitHub Actions Secrets and avoiding hardcoded AWS or Azure keys in the repository.
+
+## 📝 Day 12 – Deployment Verification & Rollback
+
+- [x] Added a health check API endpoint (/api/health) to verify application availability after deployment.
+
+- [x] Extended the GitHub Actions CI pipeline with a deployment verification step that validates application health using the health endpoint.
+
+- [x] Implemented smoke tests to perform quick post-deployment checks and confirm core system functionality.
+
+- [x] Designed and demonstrated a rollback strategy in the CI workflow that automatically triggers when deployment verification fails.
+
+- [x] Simulated a deployment failure to validate rollback behavior and documented the results with screenshots, reflecting improvements in MTTD, MTTR, and Change Failure Rate.
+
 ## 🐳 Docker & Docker Compose Setup
 
 ### Overview
