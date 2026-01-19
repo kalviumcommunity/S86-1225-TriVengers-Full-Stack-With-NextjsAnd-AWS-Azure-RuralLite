@@ -8,6 +8,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { toast } from "react-hot-toast";
 import { manualClearCache } from "@/lib/utils/cacheManager";
 import { fetcher, swrConfig } from "@/lib/fetcher";
+import { fetchWithAuth } from "@/lib/authClient";
 
 export default function ProfilePage() {
   const { user, refreshUser } = useAuth();
@@ -58,14 +59,34 @@ export default function ProfilePage() {
     e.preventDefault();
     setLoading(true);
     try {
-      // Update user profile API call would go here
-      await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulate API call
+      if (!user?.id) {
+        toast.error("User ID not found");
+        return;
+      }
+
+      // Update user profile via API with automatic token refresh
+      const response = await fetchWithAuth(`/api/users/${user.id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: formData.name,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to update profile");
+      }
+
       // Refresh user data from server
       await refreshUser();
       setIsEditing(false);
-      alert("Profile updated successfully!");
+      toast.success("Profile updated successfully!");
     } catch (error) {
-      alert("Failed to update profile");
+      console.error("Profile update error:", error);
+      toast.error(error.message || "Failed to update profile");
     } finally {
       setLoading(false);
     }
@@ -167,9 +188,13 @@ export default function ProfilePage() {
                       name="email"
                       value={formData.email}
                       onChange={handleChange}
-                      className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                      disabled
+                      className="w-full px-4 py-3 border border-slate-300 rounded-lg bg-slate-100 text-slate-500 cursor-not-allowed"
                       required
                     />
+                    <p className="text-xs text-slate-500 mt-1">
+                      Email cannot be changed for security reasons
+                    </p>
                   </div>
                   <div className="flex gap-4">
                     <button

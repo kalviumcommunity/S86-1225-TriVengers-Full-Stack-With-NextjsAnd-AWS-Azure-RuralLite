@@ -6,9 +6,10 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
-import { refreshAccessToken } from "@/lib/authClient";
+import { refreshAccessToken, setupAutoRefresh } from "@/lib/authClient";
 
 const STORAGE_KEYS = {
   token: "authToken",
@@ -52,9 +53,20 @@ export function AuthProvider({ children }) {
   const [status, setStatus] = useState("loading");
   const [error, setError] = useState(null);
 
+  // Refs to prevent race conditions
+  const isRefreshingRef = useRef(false);
+  const autoRefreshIntervalRef = useRef(null);
+
   // Initialize and validate auth state on client side
   useEffect(() => {
     const initAuth = async () => {
+      // Prevent multiple simultaneous init attempts
+      if (isRefreshingRef.current) {
+        return;
+      }
+
+      isRefreshingRef.current = true;
+
       const storedUser = readStoredUser();
       const storedToken = readStoredToken();
 
@@ -73,6 +85,12 @@ export function AuthProvider({ children }) {
               setUser(data.data);
               setToken(storedToken);
               setStatus("authenticated");
+
+              // Setup auto-refresh after successful authentication
+              if (autoRefreshIntervalRef.current) {
+                clearInterval(autoRefreshIntervalRef.current);
+              }
+              autoRefreshIntervalRef.current = setupAutoRefresh();
             } else {
               // Invalid response, clear auth
               clearSession();
@@ -93,9 +111,17 @@ export function AuthProvider({ children }) {
       }
 
       setMounted(true);
+      isRefreshingRef.current = false;
     };
 
     initAuth();
+
+    // Cleanup auto-refresh on unmount
+    return () => {
+      if (autoRefreshIntervalRef.current) {
+        clearInterval(autoRefreshIntervalRef.current);
+      }
+    };
   }, []);
 
   // Handle tab visibility changes and storage events for cross-tab sync
@@ -198,6 +224,13 @@ export function AuthProvider({ children }) {
       setUser(nextUser);
       setToken(nextToken);
       setStatus("authenticated");
+
+      // Setup auto-refresh after successful login
+      if (autoRefreshIntervalRef.current) {
+        clearInterval(autoRefreshIntervalRef.current);
+      }
+      autoRefreshIntervalRef.current = setupAutoRefresh();
+
       return { success: true, user: nextUser };
     } catch (err) {
       const message = "Unable to login. Please try again.";
@@ -212,6 +245,12 @@ export function AuthProvider({ children }) {
       await fetch("/api/auth/logout", { method: "POST" });
     } catch {
       // Ignore network errors during logout
+    }
+
+    // Clear auto-refresh interval
+    if (autoRefreshIntervalRef.current) {
+      clearInterval(autoRefreshIntervalRef.current);
+      autoRefreshIntervalRef.current = null;
     }
 
     clearSession();

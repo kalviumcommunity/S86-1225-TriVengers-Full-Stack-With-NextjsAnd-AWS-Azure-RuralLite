@@ -7,6 +7,7 @@ import Navbar from "@/components/Navbar";
 import AuthGuard from "@/components/AuthGuard";
 import Link from "next/link";
 import { fetcher, swrConfig } from "@/lib/fetcher";
+import { dbManager, STORES } from "@/lib/db/indexedDB";
 
 export default function QuizzesPage() {
   const router = useRouter();
@@ -20,6 +21,22 @@ export default function QuizzesPage() {
   } = useSWR("/api/quizzes", fetcher, swrConfig);
   const { data: quizHistory } = useSWR("/api/quiz-history", fetcher, swrConfig);
   const [selectedSubject, setSelectedSubject] = useState(null);
+
+  // Cache quizzes to IndexedDB for offline access
+  useEffect(() => {
+    if (quizzes && quizzes.length > 0) {
+      quizzes.forEach(async (quiz) => {
+        try {
+          await dbManager.put(STORES.QUIZZES, quiz);
+        } catch (error) {
+          console.error("Failed to cache quiz:", error);
+        }
+      });
+      console.log(
+        `✅ Cached ${quizzes.length} quizzes to IndexedDB for offline use`
+      );
+    }
+  }, [quizzes]);
 
   const subjects = useMemo(() => {
     if (!quizzes) return [];

@@ -2,6 +2,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
+import AuthErrorBoundary from "./AuthErrorBoundary";
 
 export default function AuthGuard({ children, requireAuth = true }) {
   const router = useRouter();
@@ -32,5 +33,5 @@ export default function AuthGuard({ children, requireAuth = true }) {
     return null;
   }
 
-  return children;
+  return <AuthErrorBoundary>{children}</AuthErrorBoundary>;
 }

@@ -7,7 +7,7 @@ import { ZodError } from "zod";
 
 export async function GET(_req, { params }) {
   try {
-    const id = params.id;
+    const { id } = await params;
     if (!id || !ObjectId.isValid(id)) {
       return sendError("Invalid id", ERROR_CODES.VALIDATION_ERROR, 400);
     }
@@ -43,7 +43,7 @@ export async function GET(_req, { params }) {
 
 export async function PUT(req, { params }) {
   try {
-    const id = params.id;
+    const { id } = await params;
     if (!id || !ObjectId.isValid(id)) {
       return sendError("Invalid id", ERROR_CODES.VALIDATION_ERROR, 400);
     }
@@ -110,7 +110,7 @@ export async function PUT(req, { params }) {
 
 export async function DELETE(_req, { params }) {
   try {
-    const id = params.id;
+    const { id } = await params;
     if (!id || !ObjectId.isValid(id)) {
       return sendError("Invalid id", ERROR_CODES.VALIDATION_ERROR, 400);
     }

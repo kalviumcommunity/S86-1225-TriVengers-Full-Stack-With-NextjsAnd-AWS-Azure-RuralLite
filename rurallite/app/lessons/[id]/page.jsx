@@ -10,6 +10,7 @@ import Chatbot from "@/components/Chatbot";
 import MarkdownRenderer from "@/components/MarkdownRenderer";
 import { clientDevLog, clientDevError } from "@/lib/utils/devLogger";
 import { fetcher, swrConfig } from "@/lib/fetcher";
+import { dbManager, STORES } from "@/lib/db/indexedDB";
 
 export default function LessonDetailPage({ params }) {
   const router = useRouter();
@@ -34,7 +35,7 @@ export default function LessonDetailPage({ params }) {
   const [utterance, setUtterance] = useState(null);
 
   // Get quiz completion status for this lesson's subject
-  const getQuizCompletionForLesson = () => {
+  const quizCompletion = useMemo(() => {
     if (!lesson || !quizHistory || !quizzes) return null;
 
     // Find quiz for this lesson's subject
@@ -57,9 +58,7 @@ export default function LessonDetailPage({ params }) {
       totalQuestions: latestAttempt.totalQuestions,
       percentage: latestAttempt.percentage,
     };
-  };
-
-  const quizCompletion = getQuizCompletionForLesson();
+  }, [lesson, quizHistory, quizzes]);
 
   // Initialize Speech Synthesis
   useEffect(() => {
@@ -74,6 +73,41 @@ export default function LessonDetailPage({ params }) {
       }
     };
   }, []);
+
+  const fetchLesson = async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await fetch(`/api/lessons/${unwrappedParams.id}`);
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch lesson: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      if (data.success && data.data) {
+        setLesson(data.data);
+
+        // Cache lesson to IndexedDB for offline access
+        try {
+          await dbManager.put(STORES.LESSONS, data.data);
+          console.log("✅ Lesson cached to IndexedDB for offline use");
+        } catch (cacheError) {
+          console.error("Failed to cache lesson:", cacheError);
+        }
+      } else {
+        setError(data.message || "Unable to load lesson");
+      }
+    } catch (err) {
+      clientDevError("Error fetching lesson:", err);
+      setError("Unable to fetch lesson. Please check your connection.");
+      console.error("unable to fetch lesson");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     clientDevLog("📚 [Lesson] Fetching lesson:", unwrappedParams.id);
@@ -319,31 +353,6 @@ export default function LessonDetailPage({ params }) {
     }
   };
 
-  const fetchLesson = async () => {
-    try {
-      const response = await fetch(`/api/lessons?id=${unwrappedParams.id}`);
-
-      if (!response.ok) {
-        if (response.status === 404) {
-          clientDevError("❌ [Lesson] Not found");
-          setError("Lesson not found");
-        } else if (response.status === 401) {
-          clientDevError("❌ [Lesson] Authentication required");
-          setError("Please log in to access lessons");
-        } else {
-          clientDevError("❌ [Lesson] Failed to load: HTTP", response.status);
-          setError("Unable to load lesson. Please try again.");
-        }
-        return;
-      }
-    } catch (err) {
-      clientDevError("❌ [Lesson] Network error:", err);
-      setError("Network error. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   if (loading) {
     return (
       <>
@@ -368,10 +377,12 @@ export default function LessonDetailPage({ params }) {
             <h2 className="text-2xl font-bold text-orange-900 mb-2">
               Lesson Not Found
             </h2>
-            <p className="text-slate-600 mb-6">{error}</p>
-            <Link href={`/subjects/${lesson.subject}`}>
+            <p className="text-slate-600 mb-6">
+              {error || "Unable to load lesson"}
+            </p>
+            <Link href="/lessons">
               <button className="bg-gradient-to-r from-orange-600 to-orange-500 text-white px-6 py-3 rounded-lg font-semibold hover:from-orange-700 hover:to-orange-600 transition-all">
-                Back to {lesson.subject}
+                Back to Lessons
               </button>
             </Link>
           </div>

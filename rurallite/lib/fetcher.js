@@ -19,7 +19,10 @@ export const swrConfig = {
 };
 
 export const fetcher = async (url) => {
-  const res = await fetchWithAuth(url);
+  // Check if endpoint is public (lessons)
+  const isPublicEndpoint = url.includes("/api/lessons");
+
+  const res = await fetchWithAuth(url, { skipAuth: isPublicEndpoint });
 
   if (!res.ok) {
     const error = new Error("Failed to fetch data");

@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { toast } from "react-hot-toast";
+import { fetchWithAuth } from "@/lib/authClient";
 export default function LessonForm({ onSuccess, initialData = null }) {
   const [formData, setFormData] = useState({
     title: initialData?.title || "",
@@ -25,11 +26,10 @@ export default function LessonForm({ onSuccess, initialData = null }) {
         ? `/api/lessons/${initialData.id}`
         : "/api/lessons";
       const method = initialData ? "PUT" : "POST";
-      const response = await fetch(url, {
+      const response = await fetchWithAuth(url, {
         method,
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("authToken") || ""}`,
         },
         body: JSON.stringify(formData),
       });

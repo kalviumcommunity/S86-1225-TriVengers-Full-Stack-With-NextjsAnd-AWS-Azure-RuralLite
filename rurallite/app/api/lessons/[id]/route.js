@@ -22,7 +22,7 @@ export async function PUT(req, { params }) {
       );
     }
 
-    const { id } = params;
+    const { id } = await params;
     const body = await req.json();
     const { title, subject, content, grade, difficulty } = body;
 
@@ -63,9 +63,9 @@ export async function PUT(req, { params }) {
 
 export async function GET(req, { params }) {
   try {
-    const { id } = params;
+    const { id } = await params;
 
-    if (!ObjectId.isValid(id)) {
+    if (!id || !ObjectId.isValid(id)) {
       return sendError("Invalid lesson ID", ERROR_CODES.VALIDATION_ERROR, 400);
     }
 
@@ -91,7 +91,7 @@ export async function GET(req, { params }) {
       grade: lesson.grade,
       difficulty: lesson.difficulty,
       createdAt: lesson.createdAt,
-      quizzes: quizzes.map(q => ({
+      quizzes: quizzes.map((q) => ({
         id: q._id.toString(),
         title: q.title,
         description: q.description,

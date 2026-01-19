@@ -24,7 +24,7 @@ import { devError } from "../../../../lib/utils/devLogger";
 export async function POST(req) {
   try {
     // Get refresh token from cookie
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const refreshToken = cookieStore.get("refreshToken")?.value;
 
     if (!refreshToken) {

@@ -67,28 +67,31 @@ export async function refreshAccessToken() {
  * Fetch with automatic token refresh on 401
  * @param {string} url - API endpoint
  * @param {Object} options - Fetch options
+ * @param {boolean} options.skipAuth - Skip adding auth token (for public endpoints)
  * @returns {Promise<Response>} - Fetch response
  */
 export async function fetchWithAuth(url, options = {}) {
+  const { skipAuth, ...fetchOptions } = options;
+
   // Get current access token
   const token =
     typeof window !== "undefined" ? localStorage.getItem("authToken") : null;
 
-  // Add authorization header
+  // Add authorization header only if not skipping auth and token exists
   const headers = {
-    ...options.headers,
-    ...(token && { Authorization: `Bearer ${token}` }),
+    ...fetchOptions.headers,
+    ...(!skipAuth && token && { Authorization: `Bearer ${token}` }),
   };
 
   // Make initial request
   let response = await fetch(url, {
-    ...options,
+    ...fetchOptions,
     headers,
     credentials: "include",
   });
 
-  // If 401 Unauthorized, try to refresh token
-  if (response.status === 401 && !options._retry) {
+  // If 401 Unauthorized and not skipping auth, try to refresh token
+  if (response.status === 401 && !skipAuth && !fetchOptions._retry) {
     if (isRefreshing) {
       // Wait for ongoing refresh to complete
       return new Promise((resolve) => {

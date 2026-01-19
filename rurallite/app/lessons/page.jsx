@@ -1,12 +1,13 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import useSWR, { mutate } from "swr";
 import { fetcher } from "@/lib/fetcher";
+import { fetchWithAuth } from "@/lib/authClient";
+import { dbManager, STORES } from "@/lib/db/indexedDB";
 import LessonForm from "@/components/lessons/LessonForm";
 import { toast } from "react-hot-toast";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
-import AuthGuard from "@/components/AuthGuard";
 import { useAuth } from "@/hooks/useAuth";
 
 export default function LessonsPage() {
@@ -23,27 +24,41 @@ export default function LessonsPage() {
   const [showForm, setShowForm] = useState(false);
   const [editingLesson, setEditingLesson] = useState(null);
 
-  const isTeacherOrAdmin = user && (
-    user.role === "ADMIN" ||
-    user.role === "TEACHER" ||
-    user.role === "admin" ||
-    user.role === "teacher"
-  );
+  const isTeacherOrAdmin =
+    user &&
+    (user.role === "ADMIN" ||
+      user.role === "TEACHER" ||
+      user.role === "admin" ||
+      user.role === "teacher");
+
+  // Cache lessons to IndexedDB for offline access
+  useEffect(() => {
+    if (lessons && lessons.length > 0) {
+      // Save each lesson to IndexedDB
+      lessons.forEach(async (lesson) => {
+        try {
+          await dbManager.put(STORES.LESSONS, lesson);
+        } catch (error) {
+          console.error("Failed to cache lesson:", error);
+        }
+      });
+      console.log(
+        `✅ Cached ${lessons.length} lessons to IndexedDB for offline use`
+      );
+    }
+  }, [lessons]);
 
   const isLessonCompleted = (lessonId) => {
     if (!progressData) return false;
-    const progress = progressData.find(p => p.lessonId === lessonId);
+    const progress = progressData.find((p) => p.lessonId === lessonId);
     return progress?.completed || false;
   };
 
   const handleDelete = async (id) => {
     if (!confirm("Are you sure you want to delete this lesson?")) return;
     try {
-      const response = await fetch(`/api/lessons?id=${id}`, {
+      const response = await fetchWithAuth(`/api/lessons?id=${id}`, {
         method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("authToken")}`,
-        },
       });
       if (response.ok) {
         toast.success("Lesson deleted successfully");
@@ -69,11 +84,23 @@ export default function LessonsPage() {
           <div className="max-w-6xl mx-auto px-4">
             <div className="bg-white border-2 border-red-200 rounded-2xl shadow-lg p-8 text-center">
               <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <svg className="w-10 h-10 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                <svg
+                  className="w-10 h-10 text-red-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
                 </svg>
               </div>
-              <h2 className="text-3xl font-bold text-slate-800 mb-3">Failed to Load Lessons</h2>
+              <h2 className="text-3xl font-bold text-slate-800 mb-3">
+                Failed to Load Lessons
+              </h2>
               <p className="text-slate-600 mb-6">
                 We encountered an error while fetching the lessons.
               </p>
@@ -107,7 +134,7 @@ export default function LessonsPage() {
     );
   }
   return (
-    <AuthGuard>
+    <>
       <Navbar />
       <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-orange-50 py-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -201,8 +228,18 @@ export default function LessonsPage() {
                 {/* Completion Badge */}
                 {isLessonCompleted(lesson.id) && (
                   <div className="absolute top-2 right-2 z-10 bg-green-500 text-white px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1 shadow-lg">
-                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    <svg
+                      className="w-3 h-3"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M5 13l4 4L19 7"
+                      />
                     </svg>
                     ✓ Done
                   </div>
@@ -400,6 +437,6 @@ export default function LessonsPage() {
           )}
         </div>
       </div>
-    </AuthGuard>
+    </>
   );
 }
