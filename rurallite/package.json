@@ -6,18 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "echo 'Linting disabled - Next.js handles validation during build'",
-    "test": "vitest",
-    "prisma:generate": "prisma generate",
-    "prisma:migrate": "prisma migrate dev --name init_schema",
-    "prisma:studio": "prisma studio",
-    "prisma:seed": "node prisma/seed.js",
-    "tx:demo": "node scripts/transaction_demo.js",
-    "bench:explain": "node scripts/bench_explain.js",
-    "db:reset": "docker-compose down -v && docker-compose up -d db && npx prisma migrate reset --force"
-  },
-  "prisma": {
-    "seed": "node prisma/seed.js"
+    "lint": "echo 'Linting disabled - Next.js handles validation during build'"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.709.0",
@@ -25,7 +14,6 @@
     "@aws-sdk/s3-request-presigner": "^3.709.0",
     "@heroicons/react": "^2.2.0",
     "@hookform/resolvers": "^5.2.2",
-    "@prisma/client": "^5.22.0",
     "@sendgrid/mail": "^8.1.6",
     "bcrypt": "^6.0.0",
     "bcryptjs": "^3.0.3",
@@ -61,7 +49,6 @@
     "jest-environment-jsdom": "^30.2.0",
     "jsdom": "^27.4.0",
     "next": "^16.1.1",
-    "prisma": "^5.22.0",
     "tailwindcss": "^4",
     "ts-jest": "^29.4.6",
     "vitest": "^1.5.4"
